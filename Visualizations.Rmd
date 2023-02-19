@@ -16,3 +16,15 @@ tx_houston <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.cs
 head(tx_houston)
 ```
 
+### Created smaller dataset to work with initially.
+
+Our computers were struggling to work with the entire dataset, so we created a mini dataset by randomly sampling 1,000 rows. We will use this dataset for creating the graphs/brainstorming, then we will run the code on the large dataset as a final step. 
+```{r}
+mini_htx <- read_csv("Datasets/mini_htx.csv")
+mini_htx
+```
+
+```{r}
+
+```
+
