@@ -24,6 +24,18 @@ mini_htx <- read_csv("Datasets/mini_htx.csv")
 mini_htx
 ```
 
+```{r}
+mini_htx
+colSums(is.na(mini_htx))
+```
+
+```{r}
+min(mini_htx$date)
+max(mini_htx$date)
+```
+
+## Visualizations 
+
 ```{r Race Line Graph by Year}
 # visualize totals for each race
 # Grace
