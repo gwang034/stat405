@@ -24,7 +24,39 @@ mini_htx <- read_csv("Datasets/mini_htx.csv")
 mini_htx
 ```
 
-```{r}
+```{r Race Line Graph by Year}
+# visualize totals for each race
 
 ```
 
+```{r Race to Citation Ratio (Paired Bar Graph)}
+# x axis: race
+# y axis: Count
+# two bars per race for citation issued true and citation issued false
+# visualize to investigate for evidence of racial bias
+
+
+```
+
+
+```{r Line graph of number of arrests}
+# Observe arrests over time and any time-associate patterns
+
+```
+
+
+```{r Scatter plot longitude vs latitude, color by district}
+# verifying the hubs for arrest and locations of districts
+
+```
+
+```{r scatter plot of difference between speed and posted speed over time }
+# if we want to do a line plot
+
+```
+
+```{r Citations by year histogram}
+# x axis is the number of citations
+# y is frequency of bucket
+
+```
