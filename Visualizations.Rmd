@@ -26,6 +26,8 @@ mini_htx
 
 ```{r Race Line Graph by Year}
 # visualize totals for each race
+# Grace
+
 
 ```
 
@@ -34,29 +36,33 @@ mini_htx
 # y axis: Count
 # two bars per race for citation issued true and citation issued false
 # visualize to investigate for evidence of racial bias
-
+# Siddhi
 
 ```
 
 
-```{r Line graph of number of arrests}
+```{r Line graph of number of citations}
 # Observe arrests over time and any time-associate patterns
+# Siddhi
 
 ```
 
 
 ```{r Scatter plot longitude vs latitude, color by district}
 # verifying the hubs for arrest and locations of districts
+# Virginia
 
 ```
 
 ```{r scatter plot of difference between speed and posted speed over time }
 # if we want to do a line plot
+# Virginia
 
 ```
 
-```{r Citations by year histogram}
-# x axis is the number of citations
-# y is frequency of bucket
+```{r Citations by time of day histogram}
+# x axis is the time of day
+# y is frequency
+# Grace
 
 ```
