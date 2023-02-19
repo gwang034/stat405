@@ -1,0 +1,18 @@
+---
+title: "Visualizations"
+author: "Virginia Baskin"
+date: "2/19/2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read in dataset
+```{r}
+library(readr)
+tx_houston <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
+head(tx_houston)
+```
+
