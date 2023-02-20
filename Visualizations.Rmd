@@ -51,7 +51,7 @@ max(mini_htx$date)
 # Siddhi
 counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
 na.omit(counts)
-barplot(counts, main = "Citation issued according to Race", xlab = "Race", col = "blue", legend.text = rownames(counts))
+barplot(counts, main = "Citation Count by Race", xlab = "Race", col = "blue",)
 ```
 
 
