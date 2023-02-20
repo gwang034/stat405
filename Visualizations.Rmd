@@ -71,23 +71,9 @@ lines(count$Var1, count$Freq, type = "l", lwd = 2)
 # Virginia
 mini_htx2 <- mini_htx
 mini_htx2$district <- factor(mini_htx2$district)
-#plot.window(xlim = c(29.29337, 31.4654), ylim = c(-99.6366, -94.60814))
 
 plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30), ylim = c(-96, -95), main = "Latutude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=20)
 legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=20, col=unique(mini_htx2$district), title = "District")
-
-
-min(mini_htx$lat, na.rm=TRUE) 
-#min 29.29337
-max(mini_htx$lat, na.rm=TRUE) 
-#max 31.4654
-
-min(mini_htx$lng, na.rm=TRUE) 
-#min -99.6366
-max(mini_htx$lng, na.rm=TRUE) 
-#max -94.60814 
-
-
 ```
 
 ```{r scatter plot of difference between speed and posted speed over time }
