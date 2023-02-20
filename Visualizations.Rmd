@@ -49,14 +49,20 @@ max(mini_htx$date)
 # two bars per race for citation issued true and citation issued false
 # visualize to investigate for evidence of racial bias
 # Siddhi
-
+counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
+na.omit(counts)
+barplot(counts, main = "Citation issued according to Race", xlab = "Race", col = "blue", legend.text = rownames(counts))
 ```
 
 
 ```{r Line graph of number of citations}
 # Observe arrests over time and any time-associate patterns
 # Siddhi
-
+time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
+hour <- as.numeric(format(time, "%H"))
+count <- data.frame(table(na.omit(hour)))
+plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Arrests", main = "Frequency of arrests vs Hour in Day")
+lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
 
 
