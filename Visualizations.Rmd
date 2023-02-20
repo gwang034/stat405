@@ -41,9 +41,10 @@ colSums(is.na(mini_htx))
 # visualize to investigate for evidence of racial bias
 # Siddhi
 counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
-na.omit(counts)
+counts <- na.omit(counts)
 barplot(counts/sum(counts), main = "% Citation by Race", xlab = "Race", ylab = "Percent", col = "blue",)
 ```
+Now we will look at the Citation Count by Race. As we can see, white individuals have the highest percentage of citations, followed by black individuals, unknown races, and finally, Asian/pacific individuals. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations gotten by Asian individuals is slightly lower than the proportion of Asian people in Houston.
 
 
 ```{r Line graph of number of citations}
@@ -55,8 +56,7 @@ count <- data.frame(table(na.omit(hour)))
 plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Arrests", main = "Frequency of arrests vs Hour in Day")
 lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
-
-
+Now we will look at the Frequency of arrests over the Hours of the Day.Citations are most common around 8 am, and around 3 pm. There may be a higher proportion of citations around 8 am because of high travel due to work. We are not quite sure why another peak is found at 3 pm, it may be people returning from school and/or work. We also see less citations during the super late/super early hours –  likely due to less travel as a whole.
 
 ```{r Scatter plot longitude vs latitude, color by district}
 # Verifying the hubs for arrest and locations of districts
