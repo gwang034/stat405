@@ -56,7 +56,7 @@ plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Arr
 lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
 
-
+### Plot 3
 
 ```{r Scatter plot longitude vs latitude, color by district}
 # Verifying the hubs for arrest and locations of districts
@@ -67,8 +67,9 @@ mini_htx2$district <- factor(mini_htx2$district)
 plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30), ylim = c(-96, -95), main = "Latitude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=20)
 legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=20, col=unique(mini_htx2$district), title = "District")
 ```
+Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see a clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. 
 
-
+### Plot 4
 
 ```{r scatter plot of difference between speed and posted speed over time }
 # if we want to do a line plot
@@ -77,12 +78,16 @@ mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
 diff <- mini_htx2$diff
 
 
-plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020", xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10),
+plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020", 
+     xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10),
      col = ifelse((diff <= 5), "green", 
                     ifelse((diff <= 10), "blue", 
                            ifelse((diff <= 15), "purple","red"))))
-legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", ">15 mph"), col = c("green", "blue", "purple", "red"), pch = 4, cex = 0.7)
+
+legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", ">15 mph"), 
+       col = c("green", "blue", "purple", "red"), pch = 4, cex = 0.7)
 ```
+Words 
 
 ```{r Citations by time of day histogram}
 # x axis is the time of day
