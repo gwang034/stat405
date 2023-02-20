@@ -41,9 +41,11 @@ colSums(is.na(mini_htx))
 # visualize to investigate for evidence of racial bias
 # Siddhi
 counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
-na.omit(counts)
+counts <- na.omit(counts)
 barplot(counts/sum(counts), main = "% Citation by Race", xlab = "Race", ylab = "Percent", col = "blue",)
 ```
+
+Now we will look at the Citation Count by Race. As we can see, white individuals have the highest percentage of citations, followed by black individuals, unknown races, and finally, Asian/pacific individuals. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations gotten by Asian individuals is slightly lower than the proportion of Asian people in Houston.
 
 
 ```{r Line graph of number of citations}
@@ -56,6 +58,7 @@ plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Arr
 lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
 
+Now we will look at the Frequency of arrests over the Hours of the Day.Citations are most common around 8 am, and around 3 pm. There may be a higher proportion of citations around 8 am because of high travel due to work. We are not quite sure why another peak is found at 3 pm, it may be people returning from school and/or work. We also see less citations during the super late/super early hours –  likely due to less travel as a whole.
 
 
 ### Plot 3
@@ -69,6 +72,7 @@ mini_htx2$district <- factor(mini_htx2$district)
 plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30), ylim = c(-96, -95), main = "Latitude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=20)
 legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=20, col=unique(mini_htx2$district), title = "District")
 ```
+
 Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see a clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. 
 
 ### Plot 4
@@ -89,7 +93,9 @@ plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citatio
 legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", ">15 mph"), 
        col = c("green", "blue", "purple", "red"), pch = 4, cex = 0.7)
 ```
-Words 
+
+Words -- to be written LOL 
+
 
 ```{r Citations by time of day histogram}
 # x axis is the time of day
@@ -97,3 +103,4 @@ Words
 # Grace
 
 ```
+
