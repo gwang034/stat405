@@ -42,7 +42,7 @@ colSums(is.na(mini_htx))
 # Siddhi
 counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
 na.omit(counts)
-barplot(counts/sum(counts), main = "Citation Count by Race", xlab = "Race", col = "blue",)
+barplot(counts/sum(counts), main = "% Citation by Race", xlab = "Race", ylab = "Percent", col = "blue",)
 ```
 
 
