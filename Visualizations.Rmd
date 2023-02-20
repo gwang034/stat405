@@ -22,16 +22,7 @@ Our computers were struggling to work with the entire dataset, so we created a m
 ```{r}
 mini_htx <- read_csv("Datasets/mini_htx.csv")
 mini_htx
-```
-
-```{r}
-mini_htx
 colSums(is.na(mini_htx))
-```
-
-```{r}
-min(mini_htx$date)
-max(mini_htx$date)
 ```
 
 ## Visualizations 
@@ -66,15 +57,18 @@ lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
 
 
+
 ```{r Scatter plot longitude vs latitude, color by district}
-# verifying the hubs for arrest and locations of districts
+# Verifying the hubs for arrest and locations of districts
 # Virginia
 mini_htx2 <- mini_htx
 mini_htx2$district <- factor(mini_htx2$district)
 
-plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30), ylim = c(-96, -95), main = "Latutude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=20)
+plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30), ylim = c(-96, -95), main = "Latitude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=20)
 legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=20, col=unique(mini_htx2$district), title = "District")
 ```
+
+
 
 ```{r scatter plot of difference between speed and posted speed over time }
 # if we want to do a line plot
