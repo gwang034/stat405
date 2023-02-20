@@ -56,6 +56,8 @@ plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Arr
 lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
 
+
+
 ### Plot 3
 
 ```{r Scatter plot longitude vs latitude, color by district}
