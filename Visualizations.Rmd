@@ -120,27 +120,17 @@ yearmonth <- function(fulldate){ # function to extract year and month
 }
 
 ym_dates <- unlist(lapply(dates, yearmonth)) # apply function 
-ym_dates <- as.factor(ym_dates)
-ym_table <- data.frame(table(ym_dates))
-colors <- rep(c("red", "orange", "yellow", "green", "blue", "purple", "pink",
-            "black", "grey", "steelblue", "sienna", "palegoldenrod" ), times = 7)
-par(mar=c(5, 4, 4, 8), xpd=TRUE)
+ym_dates <- as.factor(ym_dates)              # save unique dates
+ym_table <- data.frame(table(ym_dates))      # get counts
 
 plot(ym_table$ym_dates, ym_table$Freq, col=colors, pch=20, 
      xlab = "Year and Month", ylab = "Frequency of Citations", 
      main = "Frequency of Citations vs Month and Year", cex = 2)
 
 lines(ym_table$ym_dates, ym_table$Freq, type = "l", lwd = 2)
+abline(v=c(1, 13, 25, 37, 49, 61, 73), col = "blue")
+abline(v=c(7, 19, 31, 43, 55, 67, 79), col = "blue", lty="dotted")
 
-points(unlist(lapply(ym_table$ym_dates, as.numeric)), ym_table$Freq, col=colors, pch=20, 
-     xlab = "Year and Month", ylab = "Frequency of Citations", 
-     main = "Frequency of Citations vs Month and Year", cex = 2)
 
-legend("topright", inset=c(-0.1, 0), legend = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov",
-                             "Dec"), col = c("red", "orange", "yellow", "green", 
-                                                  "blue", "purple", "pink", "black", 
-                                                  "grey", "steelblue",
-                                                  "sienna","palegoldenrod" ), 
-       pch = 20, cex = 0.7)
 ```
 
