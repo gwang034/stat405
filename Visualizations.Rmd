@@ -66,6 +66,7 @@ lines(sort(unique(unknown$year)), as.vector(table((as.factor(unknown$year)))), t
 legend("topright", legend=c("black", "white", "aapi", "unknown"), col=c("blue", "red", "green", "orange"), pch = 20, cex = 0.7, title = "Race")
 
 ```
+First, we turn our attention to the total individuals of each race issued citations in each year 2014-2020. From 2014-2018, the greatest number of individuals issued citations were white, but in 2019 and 2020, black individuals were issued the most citations of any racial group. Overall, individuals of unknown race and asian/pacific islanders received significantly fewer citations than white and black individuals. In 2019 and 2020, a decrease in citations issued to white individuals can be observed. This data is not sufficient for drawing conclusions of racial bias in the citation process; more investigation is necessary into confounding factors.
 
 ### Plot 2 
 
@@ -85,22 +86,22 @@ Now we will look at the Citation Count by Race. As we can see, white individuals
 ### Plot 3 
 
 ```{r Line graph of number of citations}
-# Observe arrests over time and any time-associate patterns
+# Observe citations over time and any time-associate patterns
 # Siddhi
 time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
 hour <- as.numeric(format(time, "%H"))
 count <- data.frame(table(na.omit(hour)))
-plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Arrests", main = "Frequency of arrests vs Hour in Day")
+plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Citations", main = "Frequency of Citations vs Hour in Day")
 lines(count$Var1, count$Freq, type = "l", lwd = 2)
 ```
 
-Now we will look at the Frequency of arrests over the Hours of the Day.Citations are most common around 8 am, and around 3 pm. There may be a higher proportion of citations around 8 am because of high travel due to work. We are not quite sure why another peak is found at 3 pm, it may be people returning from school and/or work. We also see less citations during the super late/super early hours –  likely due to less travel as a whole.
+Now we will look at the Frequency of citations over the Hours of the Day.Citations are most common around 8 am, and around 3 pm. There may be a higher proportion of citations around 8 am because of high travel due to work. We are not quite sure why another peak is found at 3 pm, it may be people returning from school and/or work. We also see less citations during the super late/super early hours –  likely due to less travel as a whole.
 
 
 ### Plot 4
 
 ```{r Scatter plot longitude vs latitude, color by district}
-# Verifying the hubs for arrest and locations of districts
+# Verifying the hubs for citation and locations of districts
 # Virginia
 mini_htx2 <- mini_htx
 mini_htx2$district <- factor(mini_htx2$district)
@@ -148,7 +149,7 @@ Some of the observations disappear (clearly seen in citation where the subject i
 
 ### Plot 6
 
-```{r Citations by time of day histogram}
+```{r Citations by Month and Year}
 # x axis is the time of day
 # y is frequency
 # Grace
@@ -162,10 +163,10 @@ yearmonth <- function(fulldate){ # function to extract year and month
 ym_dates <- unlist(lapply(dates, yearmonth)) # apply function 
 ym_dates <- as.factor(ym_dates)              # save unique dates
 
-barplot(table(ym_dates), xlab = "Year and Month", ylab = "Frequency of Citations", col = rep(c("red", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey"), times = 7),
-     main = "Frequency of Citations vs Month and Year")
+barplot(table(ym_dates), xlab = "Year and Month", ylab = "Frequency of Citations", col = rep(c("red", "grey", "grey", "grey", "grey", "grey", "blue", "grey", "grey", "grey", "grey", "grey"), times = 7),
+     main = "Frequency of Citations by Month")
 
-
+legend("topright", legend=c("January", "July"), col=c("red", "blue"), title="Month", pch=15)
 
 ```
-
+Finally, we evaluated the frequency of citations for each month in the dataset in order to observe any monthly citation patterns over the years. From 2014-2016, citations experienced a mid-year dip in July, but this pattern did not consistently persist. No singular month stood out as consistently yielding the most or least citations between years. We also observed that 2019 and 2020 had the least number of total citations overall and began with the least number of citations in January for all years.
