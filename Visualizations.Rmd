@@ -130,7 +130,8 @@ plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citatio
 legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">20 mph"), 
        col = c("dark green", "blue", "purple", "red", "dark orange"), pch = 4, cex = 0.7)
 ```
-This plot investigates citations that are given for speeding. Namely, by how much were people speeding to have been issued a citation. We colored different levels of severity.
+
+This plot investigates citations that are given for speeding. Namely, by how much were people speeding to have been issued a citation. We colored different instances of citation by levels of severity. The x axis is the year/general time from the citation occurred in, and there does not seem to be any evidence of temporal trends (i.e. no one year ticketed people more / for slower speeds than other years). 
 
 ### Plot 5.5 
 ```{r}
@@ -139,7 +140,10 @@ plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citatio
      
 legend("topleft", legend=levels(factor(mini_htx2$subject_race)), cex = 0.62, pch=4, col=unique(factor(mini_htx2$subject_race)), title = "Race")
 ```
-Some of the observations disappear (clearly seen in citation where the subject is 35+ mph over the speed limit in 2019) for the second plot of this type. This is due to a the speed citation not recording the subject's race. Therefore, they are omitted from this plot.
+
+Just for fun, I colored the amount people were speeding by using the person's race to investigate if there were any observable affects there.    
+
+Some of the observations disappear (clearly seen in citation where the subject is 35+ mph over the speed limit in 2019) for the second plot of this type. This is due to the speed citation not recording the subject's race. Therefore, they are omitted from this plot.
 
 
 ### Plot 6
