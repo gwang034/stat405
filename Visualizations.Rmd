@@ -95,16 +95,26 @@ diff <- mini_htx2$diff
 
 
 plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020", 
-     xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10),
-     col = ifelse((diff <= 5), "green", 
+     xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10), 
+     col = ifelse((diff <= 5), "dark green", 
                     ifelse((diff <= 10), "blue", 
-                           ifelse((diff <= 15), "purple","red"))))
+                           ifelse((diff <= 15), "purple",
+                                  ifelse((diff <= 20), "red", "dark orange")))))
 
-legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", ">15 mph"), 
-       col = c("green", "blue", "purple", "red"), pch = 4, cex = 0.7)
+legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">20 mph"), 
+       col = c("dark green", "blue", "purple", "red", "dark orange"), pch = 4, cex = 0.7)
 ```
+This plot investigates citations that are given for speeding. Namely, by how much were people speeding to have been issued a citation. We colored different levels of severity.
 
-Words -- to be written LOL 
+### Plot 5.5 
+```{r}
+plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020 by Race", 
+     xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10), col = factor(mini_htx2$subject_race))
+     
+legend("topleft", legend=levels(factor(mini_htx2$subject_race)), cex = 0.62, pch=4, col=unique(factor(mini_htx2$subject_race)), title = "Race")
+```
+Some of the observations disappear (clearly seen in citation where the subject is 35+ mph over the speed limit in 2019) for the second plot of this type. This is due to a the speed citation not recording the subject's race. Therefore, they are omitted from this plot.
+
 
 ### Plot 6
 
