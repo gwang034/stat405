@@ -25,7 +25,15 @@ mini_htx
 colSums(is.na(mini_htx))
 ```
 
+```{r}
+mini_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
+
+```
+
+
 ## Visualizations 
+
+Before we go into visualizations, we would like to introduce our data. Our dataset is on police stops that result in citations in Houston, TX from 2015-2018. The data is from the Stanford Open Policing project and contains a little over 2 million rows. The fields of the dataset include (non-exhaustively): the date, time, location, latitude, longitude of the stop, the police beat of the officer, district, the subject's race, sex, the type of violation they receive, and the vehicle make, model, and color. 
 
 ### Plot 1 
 
@@ -44,7 +52,7 @@ year_only <- function(fulldate){
 
 black <- race_date[race_date$subject_race=="black",]
 black$year <- unlist(lapply(black$date, year_only))
-plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 100), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count")
+plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 200000), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count")
 lines(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), type = "l", col = "blue")
 
 white <- race_date[race_date$subject_race=="white",]
@@ -66,6 +74,7 @@ lines(sort(unique(unknown$year)), as.vector(table((as.factor(unknown$year)))), t
 legend("topright", legend=c("black", "white", "aapi", "unknown"), col=c("blue", "red", "green", "orange"), pch = 20, cex = 0.7, title = "Race")
 
 ```
+
 First, we turn our attention to the total individuals of each race issued citations in each year 2014-2020. From 2014-2018, the greatest number of individuals issued citations were white, but in 2019 and 2020, black individuals were issued the most citations of any racial group. Overall, individuals of unknown race and asian/pacific islanders received significantly fewer citations than white and black individuals. In 2019 and 2020, a decrease in citations issued to white individuals can be observed. This data is not sufficient for drawing conclusions of racial bias in the citation process; more investigation is necessary into confounding factors.
 
 ### Plot 2 
@@ -106,11 +115,11 @@ Now we will look at the Frequency of citations over the Hours of the Day.Citatio
 mini_htx2 <- mini_htx
 mini_htx2$district <- factor(mini_htx2$district)
 
-plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30), ylim = c(-96, -95), main = "Latitude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=20)
-legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=20, col=unique(mini_htx2$district), title = "District")
+plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30.15), ylim = c(-96, -95), main = "Latitude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=1)
+legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=1, col=unique(mini_htx2$district), title = "District")
 ```
 
-Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see a clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. 
+Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see very clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. 
 
 ### Plot 5
 
@@ -122,14 +131,14 @@ diff <- mini_htx2$diff
 
 
 plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020", 
-     xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10), 
+     xlab = "Year", ylab = "MPH Speeding", pch = ".", panel.first = grid(10,10),ylim = c(0,100), 
      col = ifelse((diff <= 5), "dark green", 
                     ifelse((diff <= 10), "blue", 
                            ifelse((diff <= 15), "purple",
                                   ifelse((diff <= 20), "red", "dark orange")))))
 
 legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">20 mph"), 
-       col = c("dark green", "blue", "purple", "red", "dark orange"), pch = 4, cex = 0.7)
+       col = c("dark green", "blue", "purple", "red", "dark orange"), pch = ".", cex = 0.7)
 ```
 
 This plot investigates citations that are given for speeding. Namely, by how much were people speeding to have been issued a citation. We colored different instances of citation by levels of severity. The x axis is the year/general time from the citation occurred in, and there does not seem to be any evidence of temporal trends (i.e. no one year ticketed people more / for slower speeds than other years). 
@@ -137,14 +146,16 @@ This plot investigates citations that are given for speeding. Namely, by how muc
 ### Plot 5.5 
 ```{r}
 plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020 by Race", 
-     xlab = "Year", ylab = "MPH Speeding", pch = 4, panel.first = grid(10,10), col = factor(mini_htx2$subject_race))
+     xlab = "Year", ylab = "MPH Speeding", pch = ".", panel.first = grid(10,10), col = factor(mini_htx2$subject_race), ylim = c(0,100))
      
-legend("topleft", legend=levels(factor(mini_htx2$subject_race)), cex = 0.62, pch=4, col=unique(factor(mini_htx2$subject_race)), title = "Race")
+legend("topleft", legend=levels(factor(mini_htx2$subject_race)), cex = 0.62, pch=".", col=unique(factor(mini_htx2$subject_race)), title = "Race")
 ```
 
 Just for fun, I colored the amount people were speeding by using the person's race to investigate if there were any observable affects there.    
 
-Some of the observations disappear (clearly seen in citation where the subject is 35+ mph over the speed limit in 2019) for the second plot of this type. This is due to the speed citation not recording the subject's race. Therefore, they are omitted from this plot.
+Some of the observations disappear (clearly seen in citation where the subject is 35+ mph over the speed limit in 2019) for the second plot of this type. This is due to the speed citation not recording the subject's race. Therefore, they are omitted from this plot. 
+
+Some of the points are not colored (the black Xs), which are observations that
 
 
 ### Plot 6
@@ -169,4 +180,5 @@ barplot(table(ym_dates), xlab = "Year and Month", ylab = "Frequency of Citations
 legend("topright", legend=c("January", "July"), col=c("red", "blue"), title="Month", pch=15)
 
 ```
+
 Finally, we evaluated the frequency of citations for each month in the dataset in order to observe any monthly citation patterns over the years. From 2014-2016, citations experienced a mid-year dip in July, but this pattern did not consistently persist. No singular month stood out as consistently yielding the most or least citations between years. We also observed that 2019 and 2020 had the least number of total citations overall and began with the least number of citations in January for all years.
