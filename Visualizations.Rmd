@@ -9,22 +9,27 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Read in dataset
-```{r}
+
+```{r, include=FALSE}
 library(readr)
 tx_houston <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
-head(tx_houston)
 ```
 
-### Created smaller dataset to work with initially.
+### Read in data
 
-Our computers were struggling to work with the entire dataset, so we created a mini dataset by randomly sampling 1,000 rows. We will use this dataset for creating the graphs/brainstorming, then we will run the code on the large dataset as a final step. 
+**Created smaller dataset to work with initially.**
+
+Our computers were struggling to work with the entire dataset, so we created a mini dataset by randomly sampling 1,000 rows. We used this dataset for initially creating the graphs/brainstorming, then we will ran the code on the large dataset as a final step. 
 ```{r}
+library(readr)
 mini_htx <- read_csv("Datasets/mini_htx.csv")
+
+#final step, eval with the full dataset
+mini_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv") 
 ```
 
-```{r}
-mini_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
+```{r, echo=FALSE}
+#sample 3rd of the data to work with, entire dataset is still too big and it has made my Rstudio crash multiple times. 
 mini_htx <- mini_htx[seq(1,2000000,3),]
 ```
 
@@ -36,9 +41,7 @@ Before we go into visualizations, we would like to introduce our data. Our datas
 ### Plot 1 
 
 ```{r Race Line Graph by Year}
-# visualize totals for each race
-# Grace
-# visualize totals for each race by year
+# Visualize totals for each race by year
 # Grace
 
 race_date <- mini_htx[,c("date", "subject_race")] # race and date
@@ -79,10 +82,7 @@ First, we turn our attention to the total individuals of each race issued citati
 
 ```{r Race to Citation Ratio (Paired Bar Graph)}
 # x axis: race
-# y axis: Count
-# two bars per race for citation issued true and citation issued false
-# visualize to investigate for evidence of racial bias
-# Siddhi
+# y axis: %
 counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
 counts <- na.omit(counts)
 barplot(counts/sum(counts), main = "% Citation by Race", xlab = "Race", ylab = "Percent", col = "blue",)
@@ -94,7 +94,6 @@ Now we will look at the Citation Count by Race. As we can see, white individuals
 
 ```{r Line graph of number of citations}
 # Observe citations over time and any time-associate patterns
-# Siddhi
 time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
 hour <- as.numeric(format(time, "%H"))
 count <- data.frame(table(na.omit(hour)))
@@ -109,7 +108,6 @@ Now we will look at the Frequency of citations over the Hours of the Day.Citatio
 
 ```{r Scatter plot longitude vs latitude, color by district}
 # Verifying the hubs for citation and locations of districts
-# Virginia
 mini_htx2 <- mini_htx
 mini_htx2$district <- factor(mini_htx2$district)
 
@@ -117,13 +115,11 @@ plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(
 legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=1, col=unique(mini_htx2$district), title = "District")
 ```
 
-Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see very clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. 
+Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see very clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. [As seen here: https://www.houstontx.gov/police/pdfs/hpd_beat_map.pdf]    
 
 ### Plot 5
 
 ```{r scatter plot of difference between speed and posted speed over time }
-# if we want to do a line plot
-# Virginia
 mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
 diff <- mini_htx2$diff
 
@@ -139,7 +135,7 @@ legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">
        col = c("dark green", "blue", "purple", "red", "dark orange"), pch = ".", cex = 0.7)
 ```
 
-This plot investigates citations that are given for speeding. Namely, by how much were people speeding to have been issued a citation. We colored different instances of citation by levels of severity. The x axis is the year/general time from the citation occurred in, and there does not seem to be any evidence of temporal trends (i.e. no one year ticketed people more / for slower speeds than other years). 
+This plot investigates citations that are given for speeding. Namely, by how much were people speeding over the limit to have been issued a citation. The y axis is mph over the speed limit (as recorded on the citation) and we colored different instances of citation by levels of severity. The x axis is the year/general time from the citation occurred in, and there does seem to be some evidence of temporal trends. There is a vertical line before 2018 where it seems like there were less tickets given overall, which could be a number of things that we could look into. It could be something about how the data was collected, if there was some data lost at any point, or maybe HPD deprioritized patrolling for speeding during that time period. There is no way to tell from just looking at the graph. Another interesting feature is that there seems to be less citations given for speeding less than 10mph over the speed limit 2020 and onward.  
 
 ### Plot 5.5 
 ```{r}
@@ -149,11 +145,9 @@ plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citatio
 legend("topleft", legend=levels(factor(mini_htx2$subject_race)), cex = 0.62, pch=".", col=unique(factor(mini_htx2$subject_race)), title = "Race")
 ```
 
-Just for fun, I colored the amount people were speeding by using the person's race to investigate if there were any observable affects there.    
+Just for fun, I colored the same points as the previous graph by using the person's race to investigate if there were any observable affects there.    
 
-Some of the observations disappear (clearly seen in citation where the subject is 35+ mph over the speed limit in 2019) for the second plot of this type. This is due to the speed citation not recording the subject's race. Therefore, they are omitted from this plot. 
-
-Some of the points are not colored (the black Xs), which are observations that
+For some reason, visually it looks like more asian/pacific islanders were given speeding citations past 2019 than from 2014-2018. This pattern needs additional investigation before we can decern if it is a true pattern or simply an anomaly from the data (or lack there of). 
 
 
 ### Plot 6
@@ -161,7 +155,7 @@ Some of the points are not colored (the black Xs), which are observations that
 ```{r Citations by Month and Year}
 # x axis is the time of day
 # y is frequency
-# Grace
+# Histogram
 
 dates <- mini_htx$date # get the dates column
 
