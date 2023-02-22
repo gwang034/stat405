@@ -1,7 +1,7 @@
 ---
 title: "Visualizations"
 author: "Virginia Baskin, Siddhi Narayan, Grace Wang"
-date: "2/19/2023"
+date: "2/21/2023"
 output: pdf_document
 ---
 
@@ -21,19 +21,17 @@ head(tx_houston)
 Our computers were struggling to work with the entire dataset, so we created a mini dataset by randomly sampling 1,000 rows. We will use this dataset for creating the graphs/brainstorming, then we will run the code on the large dataset as a final step. 
 ```{r}
 mini_htx <- read_csv("Datasets/mini_htx.csv")
-mini_htx
-colSums(is.na(mini_htx))
 ```
 
 ```{r}
 mini_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
-
+mini_htx <- mini_htx[seq(1,2000000,3),]
 ```
 
 
 ## Visualizations 
 
-Before we go into visualizations, we would like to introduce our data. Our dataset is on police stops that result in citations in Houston, TX from 2015-2018. The data is from the Stanford Open Policing project and contains a little over 2 million rows. The fields of the dataset include (non-exhaustively): the date, time, location, latitude, longitude of the stop, the police beat of the officer, district, the subject's race, sex, the type of violation they receive, and the vehicle make, model, and color. 
+Before we go into visualizations, we would like to introduce our data. Our dataset is on police stops that result in citations in Houston, TX from 2015-2020. The data is from the Stanford Open Policing project and contains a little over 2 million rows. The fields of the dataset include (non-exhaustively): the date, time, location, latitude, longitude of the stop, the police beat of the officer, district, the subject's race, sex, the type of violation they receive, and the vehicle make, model, and color. 
 
 ### Plot 1 
 
@@ -52,7 +50,7 @@ year_only <- function(fulldate){
 
 black <- race_date[race_date$subject_race=="black",]
 black$year <- unlist(lapply(black$date, year_only))
-plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 200000), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count")
+plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 60000), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count") #200000 when all
 lines(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), type = "l", col = "blue")
 
 white <- race_date[race_date$subject_race=="white",]
