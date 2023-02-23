@@ -1,5 +1,6 @@
 ---
-title: "Visualizations"
+title: "Visualizations - Houston Police Citations"
+subtitle: "Group 3"
 author: "Virginia Baskin, Siddhi Narayan, Grace Wang"
 date: "2/21/2023"
 output: pdf_document
