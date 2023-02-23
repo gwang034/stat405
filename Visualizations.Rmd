@@ -76,11 +76,11 @@ legend("topright", legend=c("black", "white", "aapi", "unknown"), col=c("blue", 
 
 ```
 
-First, we turn our attention to the total individuals of each race issued citations in each year 2014-2020. From 2014-2018, the greatest number of individuals issued citations were white, but in 2019 and 2020, black individuals were issued the most citations of any racial group. Overall, individuals of unknown race and asian/pacific islanders received significantly fewer citations than white and black individuals. In 2019 and 2020, a decrease in citations issued to white individuals can be observed. This data is not sufficient for drawing conclusions of racial bias in the citation process; more investigation is necessary into confounding factors.
+First, we turn our attention to the total individuals of each race issued citations in each year 2014-2020. From 2014-2019, the greatest number of individuals issued citations were white, but in 2020, black individuals narrowly surpassed white individuals as the racial group with the most citations of any racial group. Overall, individuals of unknown race and asian/pacific islanders received significantly fewer citations than white and black individuals. In 2019 and 2020, a decrease in citations issued to white individuals can be observed. This data is not sufficient for drawing conclusions of racial bias in the citation process; more investigation is necessary into confounding factors.
 
 ### Plot 2 
 
-```{r Race to Citation Ratio (Paired Bar Graph)}
+```{r Race to Citation Ratio (Paired Bar Graph), include=FALSE}
 # x axis: race
 # y axis: %
 counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
@@ -88,7 +88,15 @@ counts <- na.omit(counts)
 barplot(counts/sum(counts), main = "% Citation by Race", xlab = "Race", ylab = "Percent", col = "blue",)
 ```
 
-Now we will look at the Citation Count by Race. As we can see, white individuals have the highest percentage of citations, followed by black individuals, unknown races, and finally, Asian/pacific individuals. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations gotten by Asian individuals is slightly lower than the proportion of Asian people in Houston.
+```{r}
+counts <- table(mini_htx$citation_issued, mini_htx$subject_race)
+counts <- na.omit(counts)
+frac <- counts/sum(counts)
+pie(frac[-3], labels=paste0(c("asian/p.i. ", "black ", "unknown ", "white "), round(frac[-3], 2), sep=""), main = "Citation Breakdown by Race", radius = .9)
+```
+
+Now we will look at the % of Citation by Race. As we can see, white individuals have the highest percentage of citations, followed by black individuals, and then Asian/pacific islanders and unknown races make up roughly 3% each. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations for Asian individuals is slightly lower than the proportion of Asian people in Houston.
+
 
 ### Plot 3 
 
@@ -119,7 +127,7 @@ Next, we want to explore the spatial features of our data. We have both the lati
 
 ### Plot 5
 
-```{r scatter plot of difference between speed and posted speed over time }
+```{r scatter plot of difference between speed and posted speed over time, include= FALSE}
 mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
 diff <- mini_htx2$diff
 
@@ -135,22 +143,60 @@ legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">
        col = c("dark green", "blue", "purple", "red", "dark orange"), pch = ".", cex = 0.7)
 ```
 
-This plot investigates citations that are given for speeding. Namely, by how much were people speeding over the limit to have been issued a citation. The y axis is mph over the speed limit (as recorded on the citation) and we colored different instances of citation by levels of severity. The x axis is the year/general time from the citation occurred in, and there does seem to be some evidence of temporal trends. There is a vertical line before 2018 where it seems like there were less tickets given overall, which could be a number of things that we could look into. It could be something about how the data was collected, if there was some data lost at any point, or maybe HPD deprioritized patrolling for speeding during that time period. There is no way to tell from just looking at the graph. Another interesting feature is that there seems to be less citations given for speeding less than 10mph over the speed limit 2020 and onward.  
 
-### Plot 5.5 
-```{r}
+```{r, include=FALSE}
 plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020 by Race", 
      xlab = "Year", ylab = "MPH Speeding", pch = ".", panel.first = grid(10,10), col = factor(mini_htx2$subject_race), ylim = c(0,100))
      
 legend("topleft", legend=levels(factor(mini_htx2$subject_race)), cex = 0.62, pch=".", col=unique(factor(mini_htx2$subject_race)), title = "Race")
 ```
 
-Just for fun, I colored the same points as the previous graph by using the person's race to investigate if there were any observable affects there.    
+```{r}
+racediff <- mini_htx2[, c("subject_race", "diff")]
+racediff <- na.omit(racediff)
 
-For some reason, visually it looks like more asian/pacific islanders were given speeding citations past 2019 than from 2014-2018. This pattern needs additional investigation before we can decern if it is a true pattern or simply an anomaly from the data (or lack there of). 
+colors = c("firebrick", "darkorange3", "mediumvioletred", "dodgerblue4", "darkolivegreen") 
+
+# change the colors to looks better
+boxplot(diff~subject_race, data = racediff, ylim = c(0,80), xlab="Race", ylab="MPH Speeding", col = colors, main = "MPH over Limit for Speeding Citations by Race")
+```
+
+To further explore the possibility of racial bias in citations, we created a box plot of miles per hour over the speed limit for speeding citations by race. We aimed to investigate whether any racial group(s) demonstrated a distribution of speed differences that was significantly lower than any other race, which might indicate bias in the citation process. However, from the plot, we found that all races had a fairly similar median and overall distribution of MPH over limit. We also found that several races had minimums and outliers that were negative, indicating that these individuals were pulled over when driving under the speed limit; these citations may have been issued for reasons other than speeding, but further investigation into these data points is warranted.
+
+### Plot 6 
+
+```{r}
+#Virginia
+mini_htx2$subject_race <- factor(mini_htx2$subject_race)
+date <- as.POSIXct(mini_htx$date, format = "%Y/%m/%d")
+year <- as.numeric(format(date, "%Y"))
+mini_htx2$year <- year
+uni_year <- sort(unique(year))
+
+agg_tx <- aggregate(mini_htx2$diff~mini_htx2$year + mini_htx2$subject_race, data=mini_htx2, FUN=mean)
+
+# RESHAPE 
+
+data <- reshape(agg_tx, idvar = "mini_htx2$year", 
+                timevar = "mini_htx2$subject_race", direction = "wide")
+row.names(data) <- data$`mini_htx2$year`
+data <- data[ , 2:ncol(data)]
+colnames(data) <- c( "asian/p.i.", "black", "other", "unknown", "white")
+data <- as.matrix(data)
+data <- data[-8,]
+
+colors <- c("slategray1", "lightskyblue3", "slategray3", "slategray4", "lightsteelblue", "blue", "darkblue")
+barplot(height = data, beside = TRUE, col = colors, main = "Amount Speeding (in MPH) by Race Each Year", xlab = "Race", ylab = "MPH over")
+legend("topleft", legend = uni_year[-1], cex = 0.6, ncol = 4, pch = 15, col = colors)
+
+```
+
+With this plot, we sought to investigate the average amount of speeding that resulted in a citation and how these values varied across years. We added further complexity to our investigation by separating these averages by race. In terms of race, our findings were consistent with the pie chart: we saw that the average amount of speeding that warranted a ticket was fairly similar between races, although individuals of unknown race had the lowest average amount of speeding that resulted in a citation across all years. Separating the data by year also gave us new insights as we saw that in 2020, the average amount of speeding that resulted in a ticket was the highest for all racial groups. This is interesting when considering our previous data which indicated a drop off in total citations in 2020. Perhaps the decrease in citations in 2020 is related to the increase in the amount of speeding an individual must perform in order to receive one.
 
 
-### Plot 6
+
+
+### Plot 7
 
 ```{r Citations by Month and Year}
 # x axis is the time of day
@@ -167,10 +213,11 @@ ym_dates <- unlist(lapply(dates, yearmonth)) # apply function
 ym_dates <- as.factor(ym_dates)              # save unique dates
 
 barplot(table(ym_dates), xlab = "Year and Month", ylab = "Frequency of Citations", col = rep(c("red", "grey", "grey", "grey", "grey", "grey", "blue", "grey", "grey", "grey", "grey", "grey"), times = 7),
-     main = "Frequency of Citations by Month")
+     main = "Histogram of the Monthly Frequency of Citations")
 
 legend("topright", legend=c("January", "July"), col=c("red", "blue"), title="Month", pch=15)
 
 ```
 
-Finally, we evaluated the frequency of citations for each month in the dataset in order to observe any monthly citation patterns over the years. From 2014-2016, citations experienced a mid-year dip in July, but this pattern did not consistently persist. No singular month stood out as consistently yielding the most or least citations between years. We also observed that 2019 and 2020 had the least number of total citations overall and began with the least number of citations in January for all years.
+Finally, we evaluated the frequency of citations for each month in the dataset in order to observe any monthly citation patterns over the years. This histgram gives the number of citations given in each month in the dataset, with January and July of every year colored red and blue, respectively. From 2014-2016, citations increased from January into the early months of Spring, but this pattern did not consistently persist into the following years. No singular month stood out as consistently yielding the most or least citations between years. We also observed that 2020 had the least number of total citations overall and began with the least number of citations in January for all years.
+
