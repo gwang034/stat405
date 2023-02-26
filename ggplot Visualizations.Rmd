@@ -84,11 +84,9 @@ legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">
 
 ## Plot 4: MPH over Speed Limit by Race and Gender
 ```{r, include=FALSE}
-mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
-diff <- mini_htx2$diff
-mini_htx2 <- na.omit(mini_htx2)
+mini_htx4 <- na.omit(mini_htx2[,c("subject_race", "date", "diff", "subject_sex")])
 
-ggplot(mini_htx2, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
+ggplot(mini_htx4, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
 
 ```
 
