@@ -37,6 +37,46 @@ ggplot(race_date, aes(fill=subject_race, y=Freq, x=date))+geom_bar(position="sta
 ```
 
 ## Plot 2: MPH over Speed Limit for Speeding Citations 2014-2020
+with marginal histogram 
+virginia 
+
+```{r}
+mini_htx2 <- mini_htx
+mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
+diff <- mini_htx2$diff
+
+
+test <- ggplot(mini_htx2, aes(date, diff)) 
+test + geom_point(width = .5, size=1) +
+  labs(subtitle="mpg: city vs highway mileage", 
+       y="hwy", 
+       x="cty", 
+       title="Jittered Points")
+
+  
+g <- ggplot(mini_htx2, aes(x=date, y=diff)) + geom_point()
+g + geom_point() + 
+  labs(subtitle="mpg: city vs highway mileage", 
+       y="diff", 
+       x="date", 
+       title="Scatterplot with overlapping points", 
+       caption="Source: midwest")
+
+ggMarginal(g, type = "histogram", fill="transparent")
+ggMarginal(g, type = "boxplot", fill="transparent")
+
+##OLD
+plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020", 
+     xlab = "Year", ylab = "MPH Speeding", pch = ".", panel.first = grid(10,10),ylim = c(0,100), 
+     col = ifelse((diff <= 5), "dark green", 
+                    ifelse((diff <= 10), "blue", 
+                           ifelse((diff <= 15), "purple",
+                                  ifelse((diff <= 20), "red", "dark orange")))))
+
+legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">20 mph"), 
+       col = c("dark green", "blue", "purple", "red", "dark orange"), pch = ".", cex = 0.7)
+##
+```
 
 
 ## Plot 3: Monthly Citations by District
@@ -53,6 +93,7 @@ ggplot(mini_htx2, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violi
 ```
 
 ## Plot 5: Citations by District and Gender
+virginia
 
 
 ## Plot 6: Citations by Race
