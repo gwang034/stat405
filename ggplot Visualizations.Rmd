@@ -1,6 +1,6 @@
 ---
 title: "ggplot Visualizations"
-author: "Grace Wang"
+author: "Grace Wang, Virginia Baskin, Siddhi Narayan"
 date: "2023-02-26"
 output: pdf_document
 ---
@@ -18,7 +18,23 @@ mini_htx <- read_csv("Datasets/mini_htx.csv")
 ```
 
 ## Plot 1: Yearly Citations by Race
+```{r, include=FALSE}
+# yearly citations stacked by race
+race_date <- mini_htx[,c("date", "subject_race")] # race and date
+race_date <- na.omit(race_date) # omit na Values
 
+year_only <- function(fulldate){
+  year <- substring(fulldate, 1, 4) # only keep year
+}
+race_date$date <- unlist(lapply(race_date$date, year_only))
+make_factor <- (race_date$date)
+
+race_date <- as.data.frame(table(race_date))
+
+# Stacked
+ggplot(race_date, aes(fill=subject_race, y=Freq, x=date))+geom_bar(position="stack", stat="identity")+ggtitle("Police Citations in Houston 2014-2020 by Race")+xlab("Year")+ylab("Citations")+guides(fill=guide_legend(title='Subject Race'))
+
+```
 
 ## Plot 2: MPH over Speed Limit for Speeding Citations 2014-2020
 
@@ -27,7 +43,14 @@ mini_htx <- read_csv("Datasets/mini_htx.csv")
 
 
 ## Plot 4: MPH over Speed Limit by Race and Gender
+```{r, include=FALSE}
+mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
+diff <- mini_htx2$diff
+mini_htx2 <- na.omit(mini_htx2)
 
+ggplot(mini_htx2, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
+
+```
 
 ## Plot 5: Citations by District and Gender
 
