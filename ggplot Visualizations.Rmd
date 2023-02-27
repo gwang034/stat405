@@ -8,11 +8,15 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Introduction 
+
+Our team's dataset is sourced from the Stanford Open Policing Project and contains information on police stops that result in citations in Houston, TX from 2014-2020. The data contains a little over 2 million rows. The fields of the dataset include (non-exhaustively): the date, time, location, latitude, longitude of the stop, the police beat of the officer, district, the subject's race, sex, the type of violation they received, and the vehicle make, model, and color. Our team approached this dataset with a special interest in investigating trends regarding subject race, sex, and speeding amounts. Ultimately, we seek to investigate any factors that particularly dispose individuals towards receiving a citation.
 
 ```{r Load in Stuff, include=FALSE}
 
 library(ggplot2)
 library(ggExtra)
+library(ggthemes)
 library(readr)
 mini_htx <- read_csv("Datasets/mini_htx.csv")
 
@@ -36,6 +40,7 @@ race_date <- as.data.frame(table(race_date))
 ggplot(race_date, aes(fill=subject_race, y=Freq, x=date))+geom_bar(position="stack", stat="identity")+ggtitle("Police Citations in Houston 2014-2020 by Race")+xlab("Year")+ylab("Citations")+guides(fill=guide_legend(title='Subject Race'))
 
 ```
+First, our team aimed to better understand the breakdown of yearly citations issued by subject race. We sought to investigate this in order to identify any patterns that might indicate racial bias or discrepencies between years in terms of citations issued to different racial groups. We observed that black and white individuals received the most amount of citations in every year, while individuals of AAPI and unknown race received significantly less. We also observed a drop-off in total number of citations in 2020. 
 
 ## Plot 2: MPH over Speed Limit for Speeding Citations 2014-2020
 with marginal histogram 
@@ -91,12 +96,13 @@ This plot describes the amount of citations per month. Each mini plot describes 
 
 
 ## Plot 4: MPH over Speed Limit by Race and Gender
-```{r, include=FALSE, echo=FALSE}
+```{r, echo=FALSE}
 mini_htx4 <- na.omit(mini_htx2[,c("subject_race", "date", "diff", "subject_sex")])
 
 ggplot(mini_htx4, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
 
 ```
+Moving forward, we chose to visualize MPH over Speed Limit for Citation by Subject race and sex. We visualized this with violin plots, which demonstrate the density and distribution of the data. We observed that 
 
 ## Plot 5: Citations by District and Gender
 virginia
@@ -124,4 +130,4 @@ ggplot(df_grid, aes(x = x, y = y, fill = category)) +
  theme_void()
 ```
 
-Now we will look at the % of Citation by Race. As we can see, white individuals have the highest percentage of citations, followed by black individuals, and then Asian/pacific islanders, then unknown races. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations for Asian individuals is slightly lower than the proportion of Asian people in Houston.
+Now we will look at the % of Citation by Race across all years 2014-2020. As we can see, white individuals have the highest percentage of citations, followed by black individuals, and then Asian/pacific islanders, then unknown races. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations for Asian individuals is slightly lower than the proportion of Asian people in Houston.
