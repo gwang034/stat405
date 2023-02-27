@@ -86,7 +86,7 @@ mon_cit_dist <- data.frame(month = mini_htx$month, district = mini_htx$district)
 mon_cit_dist <- na.omit(mon_cit_dist)
 ggplot(data = mon_cit_dist, aes(x = month, fill = district)) + stat_count() + facet_wrap(~district, ncol= 4, nrow = 6)
 ```
-This plot describes the amount of citations per month. Each mini plot describes an individual district. District 2 has over all the highest number of citations, while District 21 has basically no citations, and is therefore not included in the plot (District 21 is IAH airport, which is important to note). The distribution of citations across months is varied between districts -- some of them have higher citations in the middle of the year, while others have more citations in the beginning or end of the year.
+This plot describes the amount of citations per month. Each mini plot describes an individual district. District 2 has over all the highest number of citations, while District 21 has basically no citations, and is therefore not included in the plot (District 21 is IAH airport, which is important to note). The distribution of citations across months is varied between districts -- some of them have higher citations in the middle of the year, while others have more citations in the beginning or end of the year, while some a relatively evenly distributed.
 
 
 ## Plot 4: MPH over Speed Limit by Race and Gender
