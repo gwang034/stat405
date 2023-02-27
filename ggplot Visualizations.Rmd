@@ -78,8 +78,15 @@ legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">
 ##
 ```
 
-
-## Plot 3: Monthly Citations by District
+## Plot 3: Citations by month stacked by district
+```{r Citations per Month by District}
+library(ggplot2)
+mini_htx$month <- format(as.Date(mini_htx$date, format="%d/%m/%Y"),"%m")
+mon_cit_dist <- data.frame(month = mini_htx$month, district = mini_htx$district)
+mon_cit_dist <- na.omit(mon_cit_dist)
+ggplot(data = mon_cit_dist, aes(x = month, fill = district)) + stat_count() + facet_wrap(~district, ncol= 4, nrow = 6)
+```
+This plot describes the amount of citations per month. Each mini plot describes an individual district. District 2 has over all the highest number of citations, while District 21 has basically no citations, and is therefore not included in the plot (District 21 is IAH airport, which is important to note). The distribution of citations across months is varied between districts -- some of them have higher citations in the middle of the year, while others have more citations in the beginning or end of the year.
 
 
 ## Plot 4: MPH over Speed Limit by Race and Gender
@@ -95,3 +102,25 @@ virginia
 
 
 ## Plot 6: Citations by Race
+```{r Race to citation ratio}
+df <- data.frame(table(na.omit(mini_htx$subject_race)))
+total_freq <- sum(df$Freq)
+df$prop <- df$Freq/total_freq
+num_squares <- round(df$prop*100)
+
+
+df_grid <- data.frame(
+ x = rep(1:10, each = 10),
+ y = rep(1:10, times = 10)
+)
+
+
+df_grid$category <- rep(df$Var1, num_squares)
+ggplot(df_grid, aes(x = x, y = y, fill = category)) +
+ geom_tile(color = "black", size = 0.5) +
+ scale_fill_brewer(palette = "Set3") +
+ labs(title="Waffle Chart of Citations per Race")+
+ theme_void()
+```
+
+Now we will look at the % of Citation by Race. As we can see, white individuals have the highest percentage of citations, followed by black individuals, and then Asian/pacific islanders, then unknown races. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations for Asian individuals is slightly lower than the proportion of Asian people in Houston.
