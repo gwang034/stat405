@@ -12,13 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r Load in Stuff, include=FALSE}
 
 library(ggplot2)
+library(ggExtra)
 library(readr)
 mini_htx <- read_csv("Datasets/mini_htx.csv")
 
 ```
 
 ## Plot 1: Yearly Citations by Race
-```{r, include=FALSE}
+```{r, echo=FALSE}
 # yearly citations stacked by race
 race_date <- mini_htx[,c("date", "subject_race")] # race and date
 race_date <- na.omit(race_date) # omit na Values
@@ -40,7 +41,7 @@ ggplot(race_date, aes(fill=subject_race, y=Freq, x=date))+geom_bar(position="sta
 with marginal histogram 
 virginia 
 
-```{r}
+```{r, echo=FALSE}
 mini_htx2 <- mini_htx
 mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
 diff <- mini_htx2$diff
@@ -79,7 +80,7 @@ legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">
 ```
 
 ## Plot 3: Citations by month stacked by district
-```{r Citations per Month by District}
+```{r Citations per Month by District, echo=FALSE}
 library(ggplot2)
 mini_htx$month <- format(as.Date(mini_htx$date, format="%d/%m/%Y"),"%m")
 mon_cit_dist <- data.frame(month = mini_htx$month, district = mini_htx$district)
@@ -90,7 +91,7 @@ This plot describes the amount of citations per month. Each mini plot describes 
 
 
 ## Plot 4: MPH over Speed Limit by Race and Gender
-```{r, include=FALSE}
+```{r, include=FALSE, echo=FALSE}
 mini_htx4 <- na.omit(mini_htx2[,c("subject_race", "date", "diff", "subject_sex")])
 
 ggplot(mini_htx4, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
@@ -102,7 +103,7 @@ virginia
 
 
 ## Plot 6: Citations by Race
-```{r Race to citation ratio}
+```{r Race to citation ratio, echo=FALSE}
 df <- data.frame(table(na.omit(mini_htx$subject_race)))
 total_freq <- sum(df$Freq)
 df$prop <- df$Freq/total_freq
