@@ -44,44 +44,23 @@ First, our team aimed to better understand the breakdown of yearly citations iss
 
 ## Plot 2: MPH over Speed Limit for Speeding Citations 2014-2020
 with marginal histogram 
-virginia 
+Virginia 
 
 ```{r, echo=FALSE}
 mini_htx2 <- mini_htx
 mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
-diff <- mini_htx2$diff
+mini_htx3 <- mini_htx2[, c("date", "diff")]
+mini_htx3 <- na.omit(mini_htx3)
 
+plot2 <- ggplot(mini_htx3, aes(date, diff)) + geom_point(size=1) +
+  labs(subtitle="Frequency of Citations for Different Levels of Speeding", 
+       y="MPH Speeding", 
+       x="Year", 
+       title="MPH over Limit for Speeding Citations 2014-2020")
 
-test <- ggplot(mini_htx2, aes(date, diff)) 
-test + geom_point(width = .5, size=1) +
-  labs(subtitle="mpg: city vs highway mileage", 
-       y="hwy", 
-       x="cty", 
-       title="Jittered Points")
-
-  
-g <- ggplot(mini_htx2, aes(x=date, y=diff)) + geom_point()
-g + geom_point() + 
-  labs(subtitle="mpg: city vs highway mileage", 
-       y="diff", 
-       x="date", 
-       title="Scatterplot with overlapping points", 
-       caption="Source: midwest")
-
-ggMarginal(g, type = "histogram", fill="transparent")
-ggMarginal(g, type = "boxplot", fill="transparent")
-
-##OLD
-plot(mini_htx2$date, mini_htx2$diff, main = "MPH over Limit for Speeding Citations 2014-2020", 
-     xlab = "Year", ylab = "MPH Speeding", pch = ".", panel.first = grid(10,10),ylim = c(0,100), 
-     col = ifelse((diff <= 5), "dark green", 
-                    ifelse((diff <= 10), "blue", 
-                           ifelse((diff <= 15), "purple",
-                                  ifelse((diff <= 20), "red", "dark orange")))))
-
-legend("topleft", legend = c("0-5 mph", "6-10 mph", "11-15 mph", "16-20 mph", ">20 mph"), 
-       col = c("dark green", "blue", "purple", "red", "dark orange"), pch = ".", cex = 0.7)
-##
+ggMarginal(plot2, type = "histogram", fill="slateblue", margins = 'y')
+ggMarginal(plot2, type = "boxplot", fill="slateblue", margins = 'y')
+ggMarginal(plot2, color ="slateblue", margins = 'y')
 ```
 
 ## Plot 3: Citations by month stacked by district
@@ -105,7 +84,70 @@ ggplot(mini_htx4, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violi
 Moving forward, we chose to visualize MPH over Speed Limit for Citation by Subject race and sex. We visualized this with violin plots, which demonstrate the density and distribution of the data. We observed that 
 
 ## Plot 5: Citations by District and Gender
-virginia
+Virginia
+
+```{r, include=FALSE}
+#x axis citation number, y axis is district, color is gender
+
+library(ggthemes)
+options(scipen = 999)  # turns of scientific notations like 1e+40
+email_campaign_funnel <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/email_campaign_funnel.csv")
+
+# X Axis Breaks and Labels 
+brks <- seq(-15000000, 15000000, 5000000)
+lbls = paste0(as.character(c(seq(15, 0, -5), seq(5, 15, 5))), "m")
+
+# Plot
+ggplot(email_campaign_funnel, aes(x = Stage, y = Users, fill = Gender)) +   # Fill column
+                              geom_bar(stat = "identity", width = .6) +   # draw the bars
+                              scale_y_continuous(breaks = brks,   # X-axis Breaks
+                                                 labels = lbls) + # X-axis Labels
+                              coord_flip() +  # Flip axes
+                              labs(title="Email Campaign Funnel") +
+                              theme_tufte() +  # Tufte theme from ggfortify
+                              theme(plot.title = element_text(hjust = .5), 
+                                    axis.ticks = element_blank()) +   # Centre plot title
+                              scale_fill_brewer(palette = "Dark2")  # Color palette
+# my try
+#should be 2 entries (one for each sex) for each of the 24 districts 
+
+new_df <- data.frame(matrix(ncol = 3, nrow = 0))
+for (row in rownames(test)){
+  for (col in colnames(test)){
+    #row in new dataframe
+    #(sex, district, value)
+    new_df <- rbind(new_df, c(row, col, test[row, col]))
+  }
+}
+colnames(new_df) <- c("sex", "district", "count")
+new_df$count <- as.numeric(new_df$count)
+new_df$district <- as.factor(new_df$district)
+
+mens <- new_df[new_df$sex == "male",]
+mens$count <- (mens$count * -1)
+new_df <- rbind(new_df[new_df$sex == "female",], mens)
+new_df
+
+new_df$district <- factor(new_df$district, ordered = TRUE)
+levels(new_df$district)
+
+brks <- seq(-70, 70, 10)
+lbls = paste0(as.character(c(seq(70, 0, -10), seq(10, 70, 10))), "m")
+
+# Plot
+library(ggfortify)
+ggplot(new_df, aes(x = district, y = count, fill = sex)) +   # Fill column
+                              geom_bar(stat = "identity", width = .6) +   # draw the bars
+                              scale_y_discrete(breaks = brks, labels = lbls) + 
+                              coord_flip() +  # Flip axes
+                              labs(title="title") +
+                              theme_tufte() +  # Tufte theme from ggfortify
+                              theme(plot.title = element_text(hjust = .5), 
+                                    axis.ticks = element_blank()) +   # Centre plot title
+                              scale_fill_brewer(palette = "Dark2")  # Color palette
+# my try
+
+```
 
 
 ## Plot 6: Citations by Race
