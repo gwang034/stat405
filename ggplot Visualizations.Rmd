@@ -19,6 +19,8 @@ library(ggExtra)
 library(ggthemes)
 library(readr)
 mini_htx <- read_csv("Datasets/mini_htx.csv")
+full_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
+mini_htx <- full_htx[seq(1,2000000,3),]
 
 ```
 
@@ -48,9 +50,10 @@ Virginia
 
 ```{r, echo=FALSE}
 mini_htx2 <- mini_htx
-mini_htx2$diff <- (mini_htx2$speed - mini_htx2$posted_speed)
+mini_htx2$diff <- abs(mini_htx2$speed - mini_htx2$posted_speed)
 mini_htx3 <- mini_htx2[, c("date", "diff")]
 mini_htx3 <- na.omit(mini_htx3)
+mini_htx3 <- mini_htx3[mini_htx3$diff != 693,]
 
 plot2 <- ggplot(mini_htx3, aes(date, diff)) + geom_point(size=1) +
   labs(subtitle="Frequency of Citations for Different Levels of Speeding", 
@@ -77,6 +80,7 @@ This plot describes the amount of citations per month. Each mini plot describes 
 ## Plot 4: MPH over Speed Limit by Race and Gender
 ```{r, echo=FALSE}
 mini_htx4 <- na.omit(mini_htx2[,c("subject_race", "date", "diff", "subject_sex")])
+mini_htx4 <- mini_htx4[mini_htx4$diff != 693,]
 
 ggplot(mini_htx4, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
 
@@ -91,26 +95,8 @@ Virginia
 
 library(ggthemes)
 options(scipen = 999)  # turns of scientific notations like 1e+40
-email_campaign_funnel <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/email_campaign_funnel.csv")
 
-# X Axis Breaks and Labels 
-brks <- seq(-15000000, 15000000, 5000000)
-lbls = paste0(as.character(c(seq(15, 0, -5), seq(5, 15, 5))), "m")
-
-# Plot
-ggplot(email_campaign_funnel, aes(x = Stage, y = Users, fill = Gender)) +   # Fill column
-                              geom_bar(stat = "identity", width = .6) +   # draw the bars
-                              scale_y_continuous(breaks = brks,   # X-axis Breaks
-                                                 labels = lbls) + # X-axis Labels
-                              coord_flip() +  # Flip axes
-                              labs(title="Email Campaign Funnel") +
-                              theme_tufte() +  # Tufte theme from ggfortify
-                              theme(plot.title = element_text(hjust = .5), 
-                                    axis.ticks = element_blank()) +   # Centre plot title
-                              scale_fill_brewer(palette = "Dark2")  # Color palette
-# my try
-#should be 2 entries (one for each sex) for each of the 24 districts 
-
+test <- table(mini_htx$subject_sex, mini_htx$district)
 new_df <- data.frame(matrix(ncol = 3, nrow = 0))
 for (row in rownames(test)){
   for (col in colnames(test)){
@@ -126,26 +112,23 @@ new_df$district <- as.factor(new_df$district)
 mens <- new_df[new_df$sex == "male",]
 mens$count <- (mens$count * -1)
 new_df <- rbind(new_df[new_df$sex == "female",], mens)
-new_df
+new_df$district <- ordered(new_df$district, seq(1,24))
 
-new_df$district <- factor(new_df$district, ordered = TRUE)
-levels(new_df$district)
-
-brks <- seq(-70, 70, 10)
-lbls = paste0(as.character(c(seq(70, 0, -10), seq(10, 70, 10))), "m")
+brks <- seq(-30000, 30000, 10000)
+lbls = paste0(as.character(c(seq(300, 0, -100), seq(100, 300, 100))), "k")
+#lbls = paste0(as.character(c(seq(15, 0, -5), seq(5, 15, 5))), "m")
 
 # Plot
 library(ggfortify)
 ggplot(new_df, aes(x = district, y = count, fill = sex)) +   # Fill column
-                              geom_bar(stat = "identity", width = .6) +   # draw the bars
-                              scale_y_discrete(breaks = brks, labels = lbls) + 
+                              geom_bar(stat = "identity", width = .7) +   # draw the bars
+                              scale_y_continuous(breaks = brks, labels = lbls) + 
                               coord_flip() +  # Flip axes
-                              labs(title="title") +
+                              labs(title="Citation by Sex by District - Pyramid", y = "Citation Count", x = "District") +
                               theme_tufte() +  # Tufte theme from ggfortify
                               theme(plot.title = element_text(hjust = .5), 
                                     axis.ticks = element_blank()) +   # Centre plot title
                               scale_fill_brewer(palette = "Dark2")  # Color palette
-# my try
 
 ```
 
@@ -162,7 +145,7 @@ df_grid <- data.frame(
  x = rep(1:10, each = 10),
  y = rep(1:10, times = 10)
 )
-
+num_squares <- c(3, 36, 1, 3, 57) #manually add one more square because the rounding resulted in only 99 
 
 df_grid$category <- rep(df$Var1, num_squares)
 ggplot(df_grid, aes(x = x, y = y, fill = category)) +
