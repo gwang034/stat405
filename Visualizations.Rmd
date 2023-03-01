@@ -24,10 +24,12 @@ Our computers were struggling to work with the entire dataset, so we created a m
 ```{r}
 library(readr)
 mini_htx <- read_csv("Datasets/mini_htx.csv")
-
+summary(mini_htx)
 #final step, eval with the full dataset
 mini_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv") 
 ```
+
+
 
 ```{r, echo=FALSE}
 #sample 3rd of the data to work with, entire dataset is still too big and it has made my Rstudio crash multiple times. 
