@@ -1,0 +1,17 @@
+---
+title: "Investigating Police Citations in Houston"
+subtitle: "Draft 3"
+author: "Grace Wang, Virginia Baskin, Siddhi Narayan"
+date: "2023-03-02"
+output: pdf_document
+---
+
+## Introduction
+
+```{r}
+
+```
+
+
+## Combine past graphs
+
