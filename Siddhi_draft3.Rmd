@@ -1,0 +1,61 @@
+---
+title: "Siddhi Final Draft 3: Investigating Police Citations in Houston"
+subtitle: "Draft 3 - dplyr"
+author: "Grace Wang, Virginia Baskin, Siddhi Narayan"
+date: "2023-02-26"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load in data, echo=FALSE}
+
+library(ggplot2)
+library(ggExtra)
+library(ggthemes)
+library(readr)
+library(dplyr)
+mini_htx <- read_csv("Datasets/mini_htx.csv")
+mini_htx <- mini_htx %>% 
+       rename("Beats" = "beat")
+
+beats_data <- read_csv("Datasets/COH_POLICE_BEATS.csv")
+htx_stats <- read_csv("Datasets/DECENNIALPL2020.P2-2023-03-02T224324.csv")
+```
+# How does the racial breakdown of citations compare to ther racial breakdown of Houston?
+From our main dataset, we visualized the breakdown of citations per race. Our group wanted to see how the breakdown of citations per race compared to the breakdown of race in Houston.
+```{r q1, echo=FALSE}
+htx_stats$`Label (Grouping)`
+htx_filtered <- filter(htx_stats, `Label (Grouping)` %in% c("White alone","Black or African American alone", "American Indian and Alaska Native alone", "Asian alone", "Native Hawaiian and Other Pacific Islander alone","Some Other Race alone"))
+htx_filtered <- htx_filtered %>% rename(race = `Label (Grouping)`, population = `Houston city, Texas`)
+aapi <- htx_filtered %>%filter(`race` %in% c("Asian alone", "Native Hawaiian and Other Pacific Islander alone"))%>% summarize(race = "asian/pacific islander", population = sum(`population`))
+htx_filtered <- htx_filtered %>% filter(!race %in% c("Asian alone","Native Hawaiian and Other Pacific Islander alone"))
+htx_filtered <- bind_rows(htx_filtered, aapi)
+htx_pop <- htx_filtered %>% mutate(race = race %>% recode("White alone" = "white", "Black or African American alone" = "black", "American Indian and Alaska Native alone" = "american indian/alaska native", "Some Other Race alone" = "other"))
+htx_pop$population <- htx_pop$population/sum(htx_pop$population)
+counts <- data.frame(na.omit(table(mini_htx$subject_race)))
+counts$Freq <- counts$Freq/sum(counts$Freq)
+counts <- counts %>% rename(race = Var1, citation_prop = Freq)
+htx <- inner_join(htx_pop, counts, by = "race")
+
+```
+#What is the average time of citation?
+Our group decided to look at what was the average time of citation
+
+```{r q4, echo=FALSE}
+time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
+hour <- as.numeric(format(time, "%H"))
+count <- data.frame(table(na.omit(hour)))
+#Calculate weighted sum
+weighted_sum <- count %>% mutate(weighted_value = as.numeric(Var1)*as.numeric(Freq)) %>% summarize(total_weighted_value = sum(weighted_value))
+
+# Calculate the total number of observations
+total_observations <- count %>% summarize(total_observations = sum(Freq))
+
+# Calculate the average value
+average_value <- weighted_sum$total_weighted_value / total_observations$total_observations
+
+# View the resulting average value
+average_value
+```
