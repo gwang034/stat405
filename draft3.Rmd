@@ -2,16 +2,195 @@
 title: "Investigating Police Citations in Houston"
 subtitle: "Draft 3"
 author: "Grace Wang, Virginia Baskin, Siddhi Narayan"
-date: "2023-03-02"
+date: "2023-03-05"
 output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(ggplot2)
+library(ggExtra)
+library(ggthemes)
+library(readr)
+mini_htx <- read_csv("Datasets/mini_htx.csv")
+full_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
+mini_htx <- full_htx[seq(1,2000000,3),]
+```
+
 ## Introduction
 
-```{r}
+Our team's dataset is sourced from the Stanford Open Policing Project and contains information on police stops that result in citations in Houston, TX from 2014-2020. The data contains a little over 2 million rows. The fields of the dataset include (non-exhaustively): the date, time, location, latitude, longitude of the stop, the police beat of the officer, district, the subject's race, sex, the type of violation they received, and the vehicle make, model, and color. Our team approached this dataset with a special interest in investigating trends regarding subject race, sex, and speeding amounts. Ultimately, we seek to investigate any factors that particularly dispose individuals towards receiving a citation.
+
+We utilized various visualization techniques in order to comprehensively analyze every feature of the problem space and maximize various perspectives on the dataset. Our dataset has a lot of free text, which is difficult to visualize in the typical way. We visualized every field that was not unstructured free text in some way or another. 
+
+
+## Data Exploration - Graphs
+Combine past graphs
+
+```{r Race Line Graph by Year, echo=FALSE}
+# Visualize totals for each race by year
+# Grace
+
+race_date <- mini_htx[,c("date", "subject_race")] # race and date
+race_date <- na.omit(race_date) # omit na Values
+
+year_only <- function(fulldate){
+  year <- substring(fulldate, 1, 4) # only keep year
+}
+
+black <- race_date[race_date$subject_race=="black",]
+black$year <- unlist(lapply(black$date, year_only))
+plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 60000), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count") #200000 when all
+lines(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), type = "l", col = "blue")
+
+white <- race_date[race_date$subject_race=="white",]
+white$year <- unlist(lapply(white$date, year_only))
+points(sort(unique(white$year)), as.vector(table(as.factor(white$year))))
+lines(sort(unique(white$year)), as.vector(table((as.factor(white$year)))), type = "l", col = "red")
+
+aapi <- race_date[race_date$subject_race=="asian/pacific islander",]
+aapi$year <- unlist(lapply(aapi$date, year_only))
+points(sort(unique(aapi$year)), as.vector(table(as.factor(aapi$year))))
+lines(sort(unique(aapi$year)), as.vector(table((as.factor(aapi$year)))), type = "l", col = "green")
+
+
+unknown <- race_date[race_date$subject_race=="unknown",]
+unknown$year <- unlist(lapply(unknown$date, year_only))
+points(sort(unique(unknown$year)), as.vector(table(as.factor(unknown$year))))
+lines(sort(unique(unknown$year)), as.vector(table((as.factor(unknown$year)))), type = "l", col = "orange")
+
+legend("topright", legend=c("black", "white", "aapi", "unknown"), col=c("blue", "red", "green", "orange"), pch = 20, cex = 0.7, title = "Race")
 
 ```
 
+First, we turn our attention to the total individuals of each race issued citations in each year 2014-2020. From 2014-2019, the greatest number of individuals issued citations were white, but in 2020, black individuals narrowly surpassed white individuals as the racial group with the most citations of any racial group. Overall, individuals of unknown race and asian/pacific islanders received significantly fewer citations than white and black individuals. In 2019 and 2020, a decrease in citations issued to white individuals can be observed. This data is not sufficient for drawing conclusions of racial bias in the citation process; more investigation is necessary into confounding factors.
 
-## Combine past graphs
+```{r Race to citation ratio, echo=FALSE}
+df <- data.frame(table(na.omit(mini_htx$subject_race)))
+total_freq <- sum(df$Freq)
+df$prop <- df$Freq/total_freq
+num_squares <- round(df$prop*100)
+
+
+df_grid <- data.frame(
+ x = rep(1:10, each = 10),
+ y = rep(1:10, times = 10)
+)
+num_squares <- c(3, 36, 1, 3, 57) #manually add one more square because the rounding resulted in only 99 
+
+df_grid$category <- rep(df$Var1, num_squares)
+ggplot(df_grid, aes(x = x, y = y, fill = category)) +
+ geom_tile(color = "black", size = 0.5) +
+ scale_fill_brewer(palette = "Set3") +
+ labs(title="Waffle Chart of Citations per Race")+
+ theme_void()
+```
+
+Next, we will look at the % of Citation by Race across all years 2014-2020 in a more geometric representation of the percentages. As we can see, white individuals have the highest percentage of citations, followed by black individuals, and then Asian/pacific islanders, then unknown races. This is somewhat proportional to the actual demographics of Houston (according to the U.S. census) – the White and Black percentages of citations are slightly higher than their population in Houston, while the proportion of citations for Asian individuals is slightly lower than the proportion of Asian people in Houston. This graph is a fun (and new, for us) way to visualize which races make up what proportions in our dataset. 
+
+
+```{r Line graph of number of citations, echo=FALSE}
+# Observe citations over time and any time-associate patterns
+time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
+hour <- as.numeric(format(time, "%H"))
+count <- data.frame(table(na.omit(hour)))
+plot(count$Var1, count$Freq, type = "n", xlab = "Hour", ylab = "Frequency of Citations", main = "Frequency of Citations vs Hour in Day")
+lines(count$Var1, count$Freq, type = "l", lwd = 2)
+```
+
+Now we will look at the Frequency of citations over the Hours of the Day. Citations are most common around 8 am, and around 3 pm. There may be a higher proportion of citations around 8 am because of high travel due to work. We are not quite sure why another peak is found at 3 pm, it may be people returning from school and/or work. We also see less citations during the super late/super early hours –  likely due to less travel as a whole.
+
+```{r Scatter plot longitude vs latitude by district, echo=FALSE}
+# Verifying the hubs for citation and locations of districts
+mini_htx2 <- mini_htx
+mini_htx2$district <- factor(mini_htx2$district)
+
+plot(mini_htx2$lat, mini_htx2$lng, col = mini_htx2$district, panel.first = grid(8,8),  xlim = c(29.5, 30.15), ylim = c(-96, -95), main = "Latitude & Longitude of Stops by District", xlab = "Latitude", ylab = "Longitude", pch=1)
+legend("bottomright", legend=levels(mini_htx2$district), cex = 0.62, pch=1, col=unique(mini_htx2$district), title = "District")
+```
+
+Next, we want to explore the spatial features of our data. We have both the latitude and the longitude of each stop, along with the district and beat. We knew that beat meant a motorized police unit that patrols a specific territory, but “district” in this context is not as clear, as it could mean multiple things. We investigated this by creating a scatterplot of the latitude versus the longitude of stops and colored it by district. We see very clear spatial grouping for each district, which means districts are not a police-defined feature but a location feature. From this plot, we can ascertain that district refers to Houston's subdistricts. [As seen here: https://www.houstontx.gov/police/pdfs/hpd_beat_map.pdf]    
+
+
+```{r, echo=FALSE}
+mini_htx2 <- mini_htx
+mini_htx2$diff <- abs(mini_htx2$speed - mini_htx2$posted_speed)
+mini_htx3 <- mini_htx2[, c("date", "diff")]
+mini_htx3 <- na.omit(mini_htx3)
+mini_htx3 <- mini_htx3[mini_htx3$diff != 693,]
+
+plot2 <- ggplot(mini_htx3, aes(date, diff)) + geom_point(size=.5) +
+  labs(subtitle="Frequency of Citations for Different Levels of Speeding", 
+       y="MPH Speeding", 
+       x="Year", 
+       title="MPH over Limit for Speeding Citations 2014-2020")
+
+ggMarginal(plot2, type = "histogram", fill="slateblue", margins = 'y')
+#ggMarginal(plot2, type = "boxplot", fill="slateblue", margins = 'y')
+#ggMarginal(plot2, color ="slateblue", margins = 'y')
+```
+
+This plot investigates citations that are given for speeding. Namely, by how much were people speeding over the limit to have been issued a citation. The y axis is mph over the speed limit (as recorded on the citation). The x axis is the year/general time from the citation occurred in, and there does seem to be some evidence of temporal trends. There is a vertical line before 2018 where it seems like there were less tickets given overall, which could be a number of things that we could look into. It could be something about how the data was collected, if there was some data lost at any point, or maybe HPD deprioritized patrolling for speeding during that time period. There is no way to tell from just looking at the graph. Another interesting feature is that there seems to be less citations given for speeding less than 10mph over the speed limit 2020 and onward. It is also interesting that there are speeding citations given for going as little as 1-5 mph over the speed limit. The most frequent citations were given around 10-15 mph over the speed limit, as seen by the histogram of frequent cited mph over speed limit on the left margin. 
+
+```{r, echo=FALSE}
+mini_htx4 <- na.omit(mini_htx2[,c("subject_race", "date", "diff", "subject_sex")])
+mini_htx4 <- mini_htx4[mini_htx4$diff != 693,]
+
+ggplot(mini_htx4, aes(fill=factor(subject_sex),subject_race, diff)) + geom_violin() + labs(title="MPH over Speed Limit for Citation", x="Subject Race",y="MPH Speeding")+guides(fill=guide_legend(title='Subject Sex'))
+
+```
+
+Moving forward, we chose to visualize MPH over Speed Limit for Citation by Subject race and sex. We visualized this with violin plots, which demonstrate the density and distribution of the data. We observed that each race except for "unknown" had a fairly similar distribution of speeding amounts, with the greatest peak around 10 MPH. Distributions of speeding amounts for each sex within each race were also very similar, although males of every race reached a greater maximum speeding amount than females. 
+
+
+```{r, echo=FALSE}
+#x axis citation number, y axis is district, color is gender
+
+library(ggthemes)
+options(scipen = 999)  # turns of scientific notations like 1e+40
+
+test <- table(mini_htx$subject_sex, mini_htx$district)
+new_df <- data.frame(matrix(ncol = 3, nrow = 0))
+for (row in rownames(test)){
+  for (col in colnames(test)){
+    #row in new dataframe
+    #(sex, district, value)
+    new_df <- rbind(new_df, c(row, col, test[row, col]))
+  }
+}
+colnames(new_df) <- c("sex", "district", "count")
+new_df$count <- as.numeric(new_df$count)
+new_df$district <- as.factor(new_df$district)
+
+mens <- new_df[new_df$sex == "male",]
+mens$count <- (mens$count * -1)
+new_df <- rbind(new_df[new_df$sex == "female",], mens)
+new_df$district <- ordered(new_df$district, seq(1,24))
+
+brks <- seq(-50000, 30000, 10000)
+lbls = paste0(as.character(c(seq(500, 0, -100), seq(100, 300, 100))), "k")
+#lbls = paste0(as.character(c(seq(15, 0, -5), seq(5, 15, 5))), "m")
+
+# Plot
+library(ggfortify)
+ggplot(new_df, aes(x = district, y = count, fill = sex)) +   # Fill column
+                              geom_bar(stat = "identity", width = .7) +   # draw the bars
+                              scale_y_continuous(breaks = brks, labels = lbls) + 
+                              coord_flip() +  # Flip axes
+                              labs(title="Citation by Sex by District - Pyramid", y = "Citation Count", x = "District") +
+                              theme_tufte() +  # Tufte theme from ggfortify
+                              theme(plot.title = element_text(hjust = .5), 
+                                    axis.ticks = element_blank()) +   # Centre plot title
+                              scale_fill_brewer(palette = "Dark2")  # Color palette
+
+```
+
+We created a "population pyramid" of citation count by district and by sex. The x-axis is the amount of citations in thousands, and the y-axis is the police district in Houston. This plot reveals interesting aspects of our dataset regarding the proportion of citations by gender. There are more citations for men than women for every single districts. This could be because men are more likely to speed, or that women speed the same but are not given citations as often. The core reason for the dependency is unknown, but the unequal count by sex is clear to see. Also, as found before in other graphs, district 21 and 23 have the least amount of citations as they are both airports (IAH and Hobby), and people are simply unable to speed in the same capacity in airport roads as they can on a highway. District 2 has the most citations, and this corresponds to the Houston's Greater Heights district, roughly. 
+
+
+## Questions 
+Investigating aspects of our data with supplemental data as well. 
 
