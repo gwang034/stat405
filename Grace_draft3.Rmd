@@ -83,10 +83,9 @@ stop_light_race
 ```
 
 # What is the number of citations per square mile for each beat?
-Next, our team aimed to understand the geographic distribution of citations by calculating the number of citations per square mile within each beat. 
+Next, our team aimed to understand the geographic distribution of citations by calculating the number of citations per square mile within each beat. To aid with our investigation, we found the mean, standard deviation, and interquartile range of the number of citations per square mile. We also looked into the 5 beats with the greatest amount of citations per square mile and the 5 beats with the least amount of citations per square mile.
 
 ```{r, echo=FALSE}
-
 # join the two dataframes on beats
 
 citations_in_beat <- mini_htx %>% inner_join(beats_data, by="Beats") %>%
@@ -99,6 +98,28 @@ cit_beat_area <- citations_in_beat %>%
   inner_join(beats_data[,c("Beats", "Area_sq_mi")], by="Beats")
 
 cit_beat_area$Citations_per_sqm <- cit_beat_area$n_individuals / cit_beat_area$Area_sq_mi
+csqm <- cit_beat_area[,c("Beats","Citations_per_sqm")]
+```
 
-cit_beat_area[,c("Beats","Citations_per_sqm")]
+Top 5 Beats ranked by citations/square mile:
+```{r, echo=FALSE}
+# Print top 5
+csqm %>% arrange(desc(Citations_per_sqm)) %>% slice_head(n=5)
+```
+
+Bottom 5 Beats ranked by citations/square mile:
+```{r, echo=FALSE}
+# Print bottom 5
+csqm %>% arrange(desc(Citations_per_sqm)) %>% slice_tail(n=5)
+```
+
+Statistics on number of citations/square mile:
+```{r, echo=FALSE}
+cqm_summary <- data.frame(matrix(ncol=3,nrow=1))
+colnames(cqm_summary) <- c("median","standard deviation", "IQR")
+cqm_summary[,1] <- csqm %>% summarise(median(Citations_per_sqm))
+cqm_summary[,2] <- csqm %>% summarise(sd(Citations_per_sqm))
+cqm_summary[,3] <- csqm %>% summarise(IQR(Citations_per_sqm))
+
+cqm_summary
 ```
