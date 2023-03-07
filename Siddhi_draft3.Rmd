@@ -47,15 +47,14 @@ Our group decided to look at what was the average time of citation
 time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
 hour <- as.numeric(format(time, "%H"))
 count <- data.frame(table(na.omit(hour)))
-#Calculate weighted sum
-weighted_sum <- count %>% mutate(weighted_value = as.numeric(Var1)*as.numeric(Freq)) %>% summarize(total_weighted_value = sum(weighted_value))
+max <- count %>% filter(Freq == max(Freq))%>% select(Var1)
+print(paste("The highest number of citations occur around", max, "hr"))
+min <- count %>% filter(Freq == min(Freq))%>%select(Var1)
+print(paste("The lowest number of citations occur around", min, "hr"))
+top_5 <- count%>%
+  arrange(desc(Freq)) %>%
+  slice_head(n = 5) %>%
+  select(Var1)
+print(paste("The highest number of citations occur at", paste(top_5$Var1, collapse = ", "), "hr"))
 
-# Calculate the total number of observations
-total_observations <- count %>% summarize(total_observations = sum(Freq))
-
-# Calculate the average value
-average_value <- weighted_sum$total_weighted_value / total_observations$total_observations
-
-# View the resulting average value
-average_value
 ```
