@@ -21,25 +21,32 @@ mini_htx <- mini_htx %>%
        rename("Beats" = "beat")
 
 beats_data <- read_csv("Datasets/COH_POLICE_BEATS.csv")
-htx_stats <- read_csv("Datasets/DECENNIALPL2020.P2-2023-03-02T224324.csv")
+htx_stats <- read_csv("Census Data Houston.csv")
 ```
 # How does the racial breakdown of citations compare to ther racial breakdown of Houston?
 From our main dataset, we visualized the breakdown of citations per race. Our group wanted to see how the breakdown of citations per race compared to the breakdown of race in Houston.
 ```{r q1, echo=FALSE}
-htx_stats$`Label (Grouping)`
-htx_filtered <- filter(htx_stats, `Label (Grouping)` %in% c("White alone","Black or African American alone", "American Indian and Alaska Native alone", "Asian alone", "Native Hawaiian and Other Pacific Islander alone","Some Other Race alone"))
-htx_filtered <- htx_filtered %>% rename(race = `Label (Grouping)`, population = `Houston city, Texas`)
-aapi <- htx_filtered %>%filter(`race` %in% c("Asian alone", "Native Hawaiian and Other Pacific Islander alone"))%>% summarize(race = "asian/pacific islander", population = sum(`population`))
-htx_filtered <- htx_filtered %>% filter(!race %in% c("Asian alone","Native Hawaiian and Other Pacific Islander alone"))
+htx_filtered <- filter(htx_stats, `Fact` %in% c("White alone, percent","Black or African American alone, percent", "American Indian and Alaska Native alone, percent", "Asian alone, percent", "Native Hawaiian and Other Pacific Islander alone, percent","Two or More Races, percent"))
+htx_filtered <- data.frame(htx_filtered$Fact, htx_filtered$`Houston city, Texas`)
+htx_filtered <- htx_filtered %>% rename(race = htx_filtered.Fact, population = htx_filtered..Houston.city..Texas.)
+htx_filtered <- htx_filtered %>%
+  mutate(pop = as.numeric(sub("%", "", population))/100)  %>%
+  select(-population)
+
+aapi <- htx_filtered %>%filter(`race` %in% c("Asian alone, percent", "Native Hawaiian and Other Pacific Islander alone, percent"))%>% summarize(race = "asian/pacific islander", pop = sum(`pop`))
+htx_filtered <- htx_filtered %>% filter(!race %in% c("Asian alone, percent","Native Hawaiian and Other Pacific Islander alone, percent"))
 htx_filtered <- bind_rows(htx_filtered, aapi)
-htx_pop <- htx_filtered %>% mutate(race = race %>% recode("White alone" = "white", "Black or African American alone" = "black", "American Indian and Alaska Native alone" = "american indian/alaska native", "Some Other Race alone" = "other"))
-htx_pop$population <- htx_pop$population/sum(htx_pop$population)
+htx_pop <- htx_filtered %>% mutate(race = race %>% recode("White alone, percent" = "white", "Black or African American alone, percent" = "black", "American Indian and Alaska Native alone, percent" = "american indian/alaska native", "Two or More Races, percent" = "other"))
 counts <- data.frame(na.omit(table(mini_htx$subject_race)))
 counts$Freq <- counts$Freq/sum(counts$Freq)
 counts <- counts %>% rename(race = Var1, citation_prop = Freq)
 htx <- inner_join(htx_pop, counts, by = "race")
-
+htx
 ```
+From this table, we can see that the population proportion of White people is lower than their citation proportion, the population, the population proportion of Black people is lower than their citation proportion, and the population proportion of Asian/Pacific Islander people is higher than the citation proportion.The 'other' population proportion is significantly higher than the citation proportion, but this may be because we signified mixed-race individuals as others, while for citation purposes, people giving citations may mark them as a single race.
+
+
+
 #What is the average time of citation?
 Our group decided to look at what was the average time of citation
 
@@ -47,10 +54,10 @@ Our group decided to look at what was the average time of citation
 time <- as.POSIXct(mini_htx$time, format = "%H:%M:%S")
 hour <- as.numeric(format(time, "%H"))
 count <- data.frame(table(na.omit(hour)))
-max <- count %>% filter(Freq == max(Freq))%>% select(Var1)
-print(paste("The highest number of citations occur around", max, "hr"))
-min <- count %>% filter(Freq == min(Freq))%>%select(Var1)
-print(paste("The lowest number of citations occur around", min, "hr"))
+max_time <- count %>% filter(Freq == max(Freq))%>% select(Var1)
+print(paste("The highest number of citations occur around", max_time$Var1, "hr"))
+min_time <- count %>% filter(Freq == min(Freq))%>%select(Var1)
+print(paste("The lowest number of citations occur around", min_time$Var1, "hr"))
 top_5 <- count%>%
   arrange(desc(Freq)) %>%
   slice_head(n = 5) %>%
@@ -58,3 +65,8 @@ top_5 <- count%>%
 print(paste("The highest number of citations occur at", paste(top_5$Var1, collapse = ", "), "hr"))
 
 ```
+We can see that the highest number of numbers of citations occur, in descending order, at 8am, 3pm, 2pm, 4pm an 1pm. Most of these times are in the afternoon, except for the 8am time. There might be a large number of citations at around 8am because this is the time that most people are travelling to work in the morning. Because of the morning rush and the need to get to work on time, people may be more likely to speed/commit citationable offences at this time.
+
+The rest of the times where the highest number of citations are given are in the afternoon, between 1pm - 4pm. This may also be attributed to rush hour traffic again, and things like school dismisal -- police may be more vigilant around school zones, while there may be more people on the roads due to schools getting out.
+
+The smallest number of citations occur around 4am. This may be due to a lack of people on the road, because it is very late at night/early in the morning.
