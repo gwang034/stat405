@@ -139,7 +139,7 @@ all_perc <- data.frame(c(blk_perc, white_perc, aapi_perc, unknown_perc, nas_perc
 colnames(all_perc) <- c("black", "white", "aapi", "unknown","N/A")
 all_perc
 ```
-The proportion of total citations that mention failure to establish financial responsibility as the sole violation is fairly similar between black and white individuals, while aapi individuals and those of unknown race share a similar proportion. We can conclude that no racial group is disproportionately targeted with citations that only mention failure to show proof of insurance, so no racial bias is detected within this type of citation.
+Of all recorded races, the proportion of total citations that mention failure to establish financial responsibility as the sole violation is the highest for black individuals. This proportion is about 0.01 higher for black individuals compared to white individuals, while aapi individuals and those of unknown race share a similar proportion around 0.0025. However, the the greatest proportion of total citations that mention failure to establish financial responsibility as the sole violation is attributed to "N/A", which indicates that the officer neglected or failed to record the subject's race. 
 
 # What is the number of citations per square mile for each beat?
 Next, our team aimed to understand the geographic distribution of citations by calculating the number of citations per square mile within each beat. To aid with our investigation, we found the median, standard deviation, and interquartile range of the number of citations per square mile. We also looked into the 5 beats with the greatest amount of citations per square mile and the 5 beats with the least amount of citations per square mile.
