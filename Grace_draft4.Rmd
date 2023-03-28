@@ -11,19 +11,188 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Establish as Database
 
-```{r Load packages}
+```{r Load packages, echo=FALSE}
 library(RSQLite)
 library(readr)
-
+library(ggplot2)
+library(ggExtra)
+library(ggthemes)
 ```
 
-```{r Establish Connection}
+```{r Establish Connection, echo=FALSE}
 
-mydata <- read_csv("Datasets/mini_htx.csv")
 con <- dbConnect(RSQLite::SQLite(), dbname = "policedb")
-dbWriteTable(con, "policedb", mydata, overwrite = TRUE)
+mini_htx_csv <- read_csv("Datasets/mini_htx.csv")
+beats_data_csv <- read_csv("Datasets/COH_POLICE_BEATS.csv")
+htx_stats_csv <- read_csv("Datasets/DECENNIALPL2020.P2-2023-03-02T224324.csv")
+census_data_csv <- read_csv("Census Data Houston.csv")
+
+dbWriteTable(con, "mini_htx", mini_htx_csv, overwrite = TRUE)
+dbWriteTable(con, "beats_data", beats_data_csv, overwrite = TRUE)
+dbWriteTable(con, "htx_stats", htx_stats_csv, overwrite = TRUE)
+dbWriteTable(con, "census_data", htx_stats_csv, overwrite = TRUE)
 
 ```
+# 2- What is the race breakdown of each type of citation?
+
+Looking at our data, our team noticed that there were 5 main types of violations: speeding, invalid license, failure to establish financial responsibility, failure to wear a seat belt, and running a stop sign/red light. We wanted to analyze the racial breakdown of each type of citation in order to see if any racial group disproportionately received any type of citation.
+
+Speeding Citations by Race:
+```{r q1, echo=FALSE}
+
+# SPEEDING Citations
+speeding_race <- mini_htx %>% filter(grepl("SPEEDING", violation)) %>%
+         group_by(subject_race) %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+speeding_race
+```
+
+Invalid License Citations by Race:
+```{r q1, echo=FALSE}
+# Invalid License Citations
+license_race <- mini_htx %>% filter(grepl("LICENSE", violation)) %>%
+         group_by(subject_race) %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+license_race
+```
+
+Failure to Establish Financial Responsibility Citations by Race:
+```{r q1, echo=FALSE}
+# Failure to establish Financial Responsibility Citations
+financial_race <- mini_htx %>% filter(grepl("FINANCIAL RESPONSIBILITY", violation)) %>%
+         group_by(subject_race) %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+financial_race
+
+```
+
+Seat Belt Citations by Race:
+```{r q1, echo=FALSE}
+# seat belt citations
+seat_belt_race <- mini_htx %>% filter(grepl("SEAT BELT", violation)) %>%
+         group_by(subject_race) %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+seat_belt_race
+
+```
+
+Running a Red Light/Stop Sign Citations by Race:
+```{r q1, echo=FALSE}
+# Running a stop light/red light
+stop_light_race <- mini_htx %>% 
+  filter(grepl("RED LIGHT", violation)|grepl("STOP SIGN", violation)) %>%
+  group_by(subject_race) %>%
+  summarise(n_individuals = n()) %>%
+  arrange(desc(n_individuals))
+stop_light_race
+
+```
+For nearly all types of citations, when considering subjects with defined races, white individuals received the most citations, followed by black and AAPI individuals; this aligns with the racial breakdown of the city of Houston. 
+However, black individuals received the most citations for failure to establish financial responsibility, which refers to the inability of the subject to provide proof of insurance. Typically, this citation should only be issued given that the subject has committed some other infraction that necessitates police interaction and request for proof of insurance. So, suspicion may be raised around citations that record failure to establish financial responsibility as the sole infraction, as the officer has not recorded any indication of why the individual was pulled over in the first place. Citations that only reference failure to establish financial responsibility may be useful in identifying possible racial bias, as the officer may have pulled over the individual based on their appearance/race, since they did not indicate any other offense on the citation. This led our team to investigate what proportion of citations for individuals of all races resulted solely from failure to establish financial responsibility.
+
+#2.1 - What proportion of citations for individuals of each race resulted solely from failure to establish financial responsibility?
+```{r, echo=FALSE}
+
+# black
+black <- mini_htx[mini_htx$subject_race=='black',]
+black_total <- nrow(black)
+
+blk_fin <- black %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+blk_perc <- blk_fin[1]/black_total
+
+# white
+white <- mini_htx[mini_htx$subject_race=='white',]
+white_total <- nrow(white)
+
+white_fin <- white %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+white_perc <- white_fin[1]/white_total
+
+# aapi
+aapi <- mini_htx[mini_htx$subject_race=='asian/pacific islander',]
+aapi_total <- nrow(aapi)
+
+aapi_fin <- aapi %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+aapi_perc <- aapi_fin[1]/aapi_total
+
+# unknown
+unknown <- mini_htx[mini_htx$subject_race=='unknown',]
+unknown_total <- nrow(unknown)
+
+unknown_fin <- unknown %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+unknown_perc <- unknown_fin[1]/unknown_total
+
+# NA
+nas <- mini_htx[is.na(mini_htx$subject_race),]
+nas_total <- nrow(unknown)
+
+nas_fin <- nas %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
+         summarise(n_individuals = n()) %>%
+         arrange(desc(n_individuals))
+nas_perc <- nas_fin[1]/nas_total
+
+all_perc <- data.frame(c(blk_perc, white_perc, aapi_perc, unknown_perc, nas_perc))
+colnames(all_perc) <- c("black", "white", "aapi", "unknown","N/A")
+all_perc
+```
+Of all recorded races, the proportion of total citations that mention failure to establish financial responsibility as the sole violation is the highest for black individuals. This proportion is about 0.01 higher for black individuals compared to white individuals, while aapi individuals and those of unknown race share a similar proportion around 0.0025. However, the the greatest proportion of total citations that mention failure to establish financial responsibility as the sole violation is attributed to "N/A", which indicates that the officer neglected or failed to record the subject's race. 
+
+# What is the number of citations per square mile for each beat?
+Next, our team aimed to understand the geographic distribution of citations by calculating the number of citations per square mile within each beat. To aid with our investigation, we found the median, standard deviation, and interquartile range of the number of citations per square mile. We also looked into the 5 beats with the greatest amount of citations per square mile and the 5 beats with the least amount of citations per square mile.
+
+
+```{r, echo=FALSE}
+# join the two dataframes on beats
+
+citations_in_beat <- mini_htx %>% inner_join(beats_data, by="Beats") %>%
+  group_by(Beats) %>%
+  summarise(n_individuals = n())
+
+citations_in_beat <- as.data.frame(citations_in_beat)
+
+cit_beat_area <- citations_in_beat %>% 
+  inner_join(beats_data[,c("Beats", "Area_sq_mi")], by="Beats")
+
+cit_beat_area$Citations_per_sqm <- cit_beat_area$n_individuals / cit_beat_area$Area_sq_mi
+csqm <- cit_beat_area[,c("Beats","Citations_per_sqm")]
+```
+Statistics on number of citations/square mile:
+```{r, echo=FALSE}
+cqm_summary <- data.frame(matrix(ncol=3,nrow=1))
+colnames(cqm_summary) <- c("median","standard deviation", "IQR")
+cqm_summary[,1] <- csqm %>% summarise(median(Citations_per_sqm))
+cqm_summary[,2] <- csqm %>% summarise(sd(Citations_per_sqm))
+cqm_summary[,3] <- csqm %>% summarise(IQR(Citations_per_sqm))
+
+cqm_summary
+```
+
+Top 5 Beats ranked by citations/square mile:
+```{r, echo=FALSE}
+# Print top 5
+csqm %>% arrange(desc(Citations_per_sqm)) %>% slice_head(n=5)
+```
+Upon comparison to a map of Houston's police beats, we saw that all five of these beats are adjacent, small, and located in the heart of Houston. Additionally, we noted that both beats 1A10 and 2A40 are very small in terms of square mileage, but contain two and one police stations, respectively; proximity to police stations could therefore explain the extremely high citations/square mile values for these beats.
+
+Bottom 5 Beats ranked by citations/square mile:
+```{r, echo=FALSE}
+# Print bottom 5
+csqm %>% arrange(desc(Citations_per_sqm)) %>% slice_tail(n=5)
+```
+Referencing a map of Houston's police beats, our team found that these five beats were located in Houston's suburbs and are all relatively large in terms of square mileage, which explains their low citations/square mile values.
+
+Map Reference: https://www.houstontx.gov/police/pdfs/hpd_beat_map.pdf
 
 ```{r Break Connection}
 
