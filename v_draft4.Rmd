@@ -1,0 +1,32 @@
+---
+title: "Virginia Draft 4"
+author: "Virginia Baskin"
+date: "3/28/2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Establish as Database
+
+```{r Load packages}
+library(RSQLite)
+library(readr)
+
+```
+
+```{r Establish Connection}
+
+mydata <- read_csv("Datasets/mini_htx.csv")
+con <- dbConnect(RSQLite::SQLite(), dbname = "policedb")
+dbWriteTable(con, "policedb", mydata, overwrite = TRUE)
+
+```
+
+```{r Break Connection}
+
+dbDisconnect(con)
+
+```
