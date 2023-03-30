@@ -19,7 +19,7 @@ library(ggExtra)
 library(ggthemes)
 ```
 
-```{r Establish Connection, echo=FALSE}
+```{r Establish Connection, include=FALSE}
 
 con <- dbConnect(RSQLite::SQLite(), dbname = "policedb")
 mini_htx_csv <- read_csv("Datasets/mini_htx.csv")
@@ -32,6 +32,8 @@ dbWriteTable(con, "beats_data", beats_data_csv, overwrite = TRUE)
 dbWriteTable(con, "htx_stats", htx_stats_csv, overwrite = TRUE)
 dbWriteTable(con, "census_data", htx_stats_csv, overwrite = TRUE)
 
+dbListTables(con)
+
 ```
 # 2- What is the race breakdown of each type of citation?
 
@@ -39,63 +41,79 @@ Looking at our data, our team noticed that there were 5 main types of violations
 
 Speeding Citations by Race:
 ```{r q1, echo=FALSE}
-
-# SPEEDING Citations
-speeding_race <- mini_htx %>% filter(grepl("SPEEDING", violation)) %>%
-         group_by(subject_race) %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-speeding_race
+query <- "
+SELECT subject_race, COUNT(*) AS count
+FROM mini_htx
+WHERE violation LIKE '%SPEEDING%'
+GROUP BY subject_race
+ORDER BY count DESC"
+res <- dbSendQuery(con, query)
+dbFetch(res)
 ```
 
 Invalid License Citations by Race:
 ```{r q1, echo=FALSE}
-# Invalid License Citations
-license_race <- mini_htx %>% filter(grepl("LICENSE", violation)) %>%
-         group_by(subject_race) %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-license_race
+query <- "
+SELECT subject_race, COUNT(*) AS count
+FROM mini_htx
+WHERE violation LIKE '%LICENSE%'
+GROUP BY subject_race
+ORDER BY count DESC"
+res <- dbSendQuery(con, query)
+dbFetch(res)
 ```
 
 Failure to Establish Financial Responsibility Citations by Race:
 ```{r q1, echo=FALSE}
 # Failure to establish Financial Responsibility Citations
-financial_race <- mini_htx %>% filter(grepl("FINANCIAL RESPONSIBILITY", violation)) %>%
-         group_by(subject_race) %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-financial_race
-
+query <- "
+SELECT subject_race, COUNT(*) AS count
+FROM mini_htx
+WHERE violation LIKE '%FINANCIAL RESPONSIBILITY%'
+GROUP BY subject_race
+ORDER BY count DESC"
+res <- dbSendQuery(con, query)
+dbFetch(res)
 ```
 
 Seat Belt Citations by Race:
 ```{r q1, echo=FALSE}
 # seat belt citations
-seat_belt_race <- mini_htx %>% filter(grepl("SEAT BELT", violation)) %>%
-         group_by(subject_race) %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-seat_belt_race
+query <- "
+SELECT subject_race, COUNT(*) AS count
+FROM mini_htx
+WHERE violation LIKE '%SEAT BELT%'
+GROUP BY subject_race
+ORDER BY count DESC"
+res <- dbSendQuery(con, query)
+dbFetch(res)
 
 ```
 
 Running a Red Light/Stop Sign Citations by Race:
 ```{r q1, echo=FALSE}
 # Running a stop light/red light
-stop_light_race <- mini_htx %>% 
-  filter(grepl("RED LIGHT", violation)|grepl("STOP SIGN", violation)) %>%
-  group_by(subject_race) %>%
-  summarise(n_individuals = n()) %>%
-  arrange(desc(n_individuals))
-stop_light_race
-
+query <- "
+SELECT subject_race, COUNT(*) AS count
+FROM mini_htx
+WHERE violation LIKE '%RED LIGHT%' OR violation LIKE '%STOP SIGN%'
+GROUP BY subject_race
+ORDER BY count DESC"
+res <- dbSendQuery(con, query)
+dbFetch(res)
 ```
 For nearly all types of citations, when considering subjects with defined races, white individuals received the most citations, followed by black and AAPI individuals; this aligns with the racial breakdown of the city of Houston. 
 However, black individuals received the most citations for failure to establish financial responsibility, which refers to the inability of the subject to provide proof of insurance. Typically, this citation should only be issued given that the subject has committed some other infraction that necessitates police interaction and request for proof of insurance. So, suspicion may be raised around citations that record failure to establish financial responsibility as the sole infraction, as the officer has not recorded any indication of why the individual was pulled over in the first place. Citations that only reference failure to establish financial responsibility may be useful in identifying possible racial bias, as the officer may have pulled over the individual based on their appearance/race, since they did not indicate any other offense on the citation. This led our team to investigate what proportion of citations for individuals of all races resulted solely from failure to establish financial responsibility.
 
 #2.1 - What proportion of citations for individuals of each race resulted solely from failure to establish financial responsibility?
 ```{r, echo=FALSE}
+
+query <- "
+CREATE VIEW IF NOT EXISTS black AS
+SELECT *
+FROM mini_htx
+WHERE subject_race = 'black';"
+dbExecute(con, query)
 
 # black
 black <- mini_htx[mini_htx$subject_race=='black',]
