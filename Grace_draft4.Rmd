@@ -107,68 +107,42 @@ However, black individuals received the most citations for failure to establish 
 
 #2.1 - What proportion of citations for individuals of each race resulted solely from failure to establish financial responsibility?
 ```{r, echo=FALSE}
+dropquery <- "
+DROP VIEW IF EXISTS race_totals;
+DROP VIEW IF EXISTS finresp_race_totals;"
+
+query1 <- "
+CREATE VIEW IF NOT EXISTS race_totals AS
+SELECT subject_race, COUNT(*) AS total
+FROM mini_htx
+GROUP BY subject_race;"
+
+query2 <- "
+CREATE VIEW IF NOT EXISTS finresp_race_totals AS
+SELECT subject_race, COUNT(*) AS fin_fail
+FROM mini_htx
+WHERE violation='FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY'
+GROUP BY subject_race;"
+
+dbExecute(con, dropquery)
+dbSendQuery(con, query1)
+dbSendQuery(con, query2)
 
 query <- "
-CREATE VIEW IF NOT EXISTS black AS
-SELECT *
-FROM mini_htx
-WHERE subject_race = 'black';"
-dbExecute(con, query)
+SELECT race_totals.subject_race, CAST(fin_fail AS real)/total AS fin_fail_percentage
+FROM race_totals
+JOIN finresp_race_totals ON race_totals.subject_race = finresp_race_totals.subject_race
+GROUP BY race_totals.subject_race;"
+res <- dbGetQuery(con, query)
+print(res)
 
-# black
-black <- mini_htx[mini_htx$subject_race=='black',]
-black_total <- nrow(black)
+# different results from dplyr because dplyr does not filter out N/As from race totals, so race totals were higher for every race
 
-blk_fin <- black %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-blk_perc <- blk_fin[1]/black_total
-
-# white
-white <- mini_htx[mini_htx$subject_race=='white',]
-white_total <- nrow(white)
-
-white_fin <- white %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-white_perc <- white_fin[1]/white_total
-
-# aapi
-aapi <- mini_htx[mini_htx$subject_race=='asian/pacific islander',]
-aapi_total <- nrow(aapi)
-
-aapi_fin <- aapi %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-aapi_perc <- aapi_fin[1]/aapi_total
-
-# unknown
-unknown <- mini_htx[mini_htx$subject_race=='unknown',]
-unknown_total <- nrow(unknown)
-
-unknown_fin <- unknown %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-unknown_perc <- unknown_fin[1]/unknown_total
-
-# NA
-nas <- mini_htx[is.na(mini_htx$subject_race),]
-nas_total <- nrow(unknown)
-
-nas_fin <- nas %>% filter(violation=="FAILURE TO ESTABLISH FINANCIAL RESPONSIBILITY") %>%
-         summarise(n_individuals = n()) %>%
-         arrange(desc(n_individuals))
-nas_perc <- nas_fin[1]/nas_total
-
-all_perc <- data.frame(c(blk_perc, white_perc, aapi_perc, unknown_perc, nas_perc))
-colnames(all_perc) <- c("black", "white", "aapi", "unknown","N/A")
-all_perc
 ```
 Of all recorded races, the proportion of total citations that mention failure to establish financial responsibility as the sole violation is the highest for black individuals. This proportion is about 0.01 higher for black individuals compared to white individuals, while aapi individuals and those of unknown race share a similar proportion around 0.0025. However, the the greatest proportion of total citations that mention failure to establish financial responsibility as the sole violation is attributed to "N/A", which indicates that the officer neglected or failed to record the subject's race. 
 
 # What is the number of citations per square mile for each beat?
 Next, our team aimed to understand the geographic distribution of citations by calculating the number of citations per square mile within each beat. To aid with our investigation, we found the median, standard deviation, and interquartile range of the number of citations per square mile. We also looked into the 5 beats with the greatest amount of citations per square mile and the 5 beats with the least amount of citations per square mile.
-
 
 ```{r, echo=FALSE}
 # join the two dataframes on beats
@@ -197,16 +171,41 @@ cqm_summary
 ```
 
 Top 5 Beats ranked by citations/square mile:
-```{r, echo=FALSE}
-# Print top 5
-csqm %>% arrange(desc(Citations_per_sqm)) %>% slice_head(n=5)
+```{r}
+# join the two dataframes on beats
+dropquery <- "
+DROP VIEW IF EXISTS citations_in_beat;
+DROP VIEW IF EXISTS cit_beat_area;"
+
+query1 <- "
+CREATE VIEW IF NOT EXISTS citations_in_beat AS
+SELECT Beats AS beats_c, COUNT(*) as count
+FROM mini_htx JOIN beats_data ON mini_htx.beat = beats_data.Beats
+GROUP BY Beats;"
+
+
+dbExecute(con, dropquery)
+dbSendQuery(con, query1)
+
+query3 <- "
+SELECT citations_in_beat.beats_c, CAST(citations_in_beat.count AS real)/beats_data.Area_sq_mi AS citations_per_sqm
+FROM citations_in_beat JOIN beats_data ON citations_in_beat.beats_c=beats_data.Beats
+ORDER BY citations_per_sqm DESC LIMIT 5;"
+
+print(dbGetQuery(con, query3))
 ```
 Upon comparison to a map of Houston's police beats, we saw that all five of these beats are adjacent, small, and located in the heart of Houston. Additionally, we noted that both beats 1A10 and 2A40 are very small in terms of square mileage, but contain two and one police stations, respectively; proximity to police stations could therefore explain the extremely high citations/square mile values for these beats.
 
 Bottom 5 Beats ranked by citations/square mile:
 ```{r, echo=FALSE}
-# Print bottom 5
-csqm %>% arrange(desc(Citations_per_sqm)) %>% slice_tail(n=5)
+
+
+query2 <- "
+SELECT citations_in_beat.beats_c, CAST(citations_in_beat.count AS real)/beats_data.Area_sq_mi AS citations_per_sqm
+FROM citations_in_beat JOIN beats_data ON citations_in_beat.beats_c=beats_data.Beats
+ORDER BY citations_per_sqm ASC LIMIT 5;"
+
+print(dbGetQuery(con, query2))
 ```
 Referencing a map of Houston's police beats, our team found that these five beats were located in Houston's suburbs and are all relatively large in terms of square mileage, which explains their low citations/square mile values.
 
