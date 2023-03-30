@@ -19,8 +19,8 @@ library(ggthemes)
 library(dplyr)
 
 mini_htx <- read_csv("Datasets/mini_htx.csv")
-full_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
-mini_htx <- full_htx[seq(1,2000000,3),]
+#full_htx <- read_csv("/Users/virginiabaskin/Downloads/tx_houston_2023_01_26.csv")
+#mini_htx <- full_htx[seq(1,2000000,3),]
 mini_htx <- mini_htx %>% rename("Beats" = "beat")
 beats_data <- read_csv("Datasets/COH_POLICE_BEATS.csv")
 htx_stats <- read_csv("Datasets/DECENNIALPL2020.P2-2023-03-02T224324.csv")
@@ -50,7 +50,7 @@ year_only <- function(fulldate){
 
 black <- race_date[race_date$subject_race=="black",]
 black$year <- unlist(lapply(black$date, year_only))
-plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 60000), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count") #200000 when all
+plot(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), ylim = c(0, 150), main = "Citations by Race for Each Year", xlab="Year", ylab = "Count") #200000 when all
 lines(sort(unique(black$year)), as.vector(table((as.factor(black$year)))), type = "l", col = "blue")
 
 white <- race_date[race_date$subject_race=="white",]
@@ -87,6 +87,7 @@ df_grid <- data.frame(
  y = rep(1:10, times = 10)
 )
 num_squares <- c(3, 36, 1, 3, 57) #manually add one more square because the rounding resulted in only 99 
+num_squares <- round(df$prop*100)
 
 df_grid$category <- rep(df$Var1, num_squares)
 ggplot(df_grid, aes(x = x, y = y, fill = category)) +
@@ -232,6 +233,7 @@ population <- dbGetQuery(con, "SELECT CASE
                          ORDER BY race")
 htx <- inner_join(citations, population, by = "race")
 htx
+knitr::kable(htx)
 
 ```
 
@@ -250,7 +252,9 @@ WHERE violation LIKE '%SPEEDING%'
 GROUP BY subject_race
 ORDER BY count DESC"
 res <- dbSendQuery(con, query)
-dbFetch(res)
+out <- dbFetch(res)
+knitr::kable(out)
+
 ```
 
 Invalid License Citations by Race:
@@ -262,7 +266,8 @@ WHERE violation LIKE '%LICENSE%'
 GROUP BY subject_race
 ORDER BY count DESC"
 res <- dbSendQuery(con, query)
-dbFetch(res)
+out <- dbFetch(res)
+knitr::kable(out)
 ```
 
 Failure to Establish Financial Responsibility Citations by Race:
@@ -275,7 +280,8 @@ WHERE violation LIKE '%FINANCIAL RESPONSIBILITY%'
 GROUP BY subject_race
 ORDER BY count DESC"
 res <- dbSendQuery(con, query)
-dbFetch(res)
+out <- dbFetch(res)
+knitr::kable(out)
 ```
 
 Seat Belt Citations by Race:
@@ -288,8 +294,8 @@ WHERE violation LIKE '%SEAT BELT%'
 GROUP BY subject_race
 ORDER BY count DESC"
 res <- dbSendQuery(con, query)
-dbFetch(res)
-
+out <- dbFetch(res)
+knitr::kable(out)
 ```
 
 Running a Red Light/Stop Sign Citations by Race:
@@ -302,7 +308,8 @@ WHERE violation LIKE '%RED LIGHT%' OR violation LIKE '%STOP SIGN%'
 GROUP BY subject_race
 ORDER BY count DESC"
 res <- dbSendQuery(con, query)
-dbFetch(res)
+out <- dbFetch(res)
+knitr::kable(out)
 ```
 
 For nearly all types of citations, when considering subjects with defined races, white individuals received the most citations, followed by black and AAPI individuals; this aligns with the racial breakdown of the city of Houston.      
@@ -338,8 +345,7 @@ FROM race_totals
 JOIN finresp_race_totals ON race_totals.subject_race = finresp_race_totals.subject_race
 GROUP BY race_totals.subject_race;"
 res <- dbGetQuery(con, query)
-print(res)
-
+knitr::kable(res)
 # different results from dplyr because dplyr does not filter out N/As from race totals, so race totals were higher for every race
 
 ```
@@ -348,62 +354,77 @@ Of all recorded races, the proportion of total citations that mention failure to
 
 ### 4- What is the average speeding amount that results in a citation? For each racial group? For each gender?
 
-Next, we wanted to investigate if different races and sexes received speeding citations equally, or if certain groups were given citations with different frequencies or for different severity of speeding.    
+Next, we wanted to investigate if different races and sexes received speeding citations equally, or if certain groups were given citations with different frequencies or for different severity of speeding.   
 
 
 All People (baseline):
 ```{r, echo=FALSE}
-# Question 3
-
 ## All people
-mutate(mini_htx, diff = speed - posted_speed) %>% 
-  filter(posted_speed >= 0) %>% 
-  summarise(mean = mean(diff, na.rm = TRUE), 
-            median = median(diff, na.rm = TRUE), 
-            sd = sd(diff, na.rm = TRUE))
+query <- "
+SELECT AVG(speed-posted_speed) AS avg_diff, STDEV(speed-posted_speed) as std_diff
+FROM mini_htx
+WHERE posted_speed >= 0"
+res <- dbSendQuery(con, query)
+df1 <- dbFetch(res)
+dbClearResult(res)
+knitr::kable(df1)
+
 ```
 
 By Race:
 ```{r, echo=FALSE}
 ## By Race
-mutate(mini_htx, diff = speed - posted_speed) %>% 
-  filter(posted_speed >= 0) %>% group_by(raw_race) %>%
-  summarise(total = n(),  ## Function to use internally of summarise only
-            mean = mean(diff, na.rm = TRUE),
-            median = median(diff, na.rm = TRUE),
-            sd = sd(diff, na.rm = TRUE)) 
+query <- "
+SELECT subject_race, COUNT(*) AS count, AVG(speed-posted_speed) AS avg_diff, STDEV(speed-posted_speed) AS std_diff
+FROM mini_htx
+WHERE posted_speed >= 0 
+GROUP BY subject_race
+ORDER BY avg_diff ASC"
+res <- dbSendQuery(con, query)
+df2 <- dbFetch(res)
+dbClearResult(res)
+knitr::kable(df2)
 ```
 
-One thing to note is the 'unknown' category. Police officers fill out the reports without asking the subjects they pulled over about their race or ethnicity. All of these reported races are from the perspective of the police officers and therefore it is difficult to know the true breakdown.    
+One thing to note is the 'unknown' category. Police officers fill out the reports without asking the subjects they pulled over about their race or ethnicity. All of these reported races are from the perspective of the police officers and therefore it is difficult to know the true breakdown.   
 
-Here, the unknown could honestly be evidence of bias. We see that for people the officers are unsure about their race (and that they do not ask to clarify), they are given citations for slower speeds (instead of being let off with a warning). 
+Here, the unknown could honestly be evidence of bias. We see that for people the officers are unsure about their race (and that they do not ask to clarify), they are given citations for slower speeds (instead of being let off with a warning).
 
-By Gender: 
+By Gender:
 ```{r, echo=FALSE}
 ## By Gender
-mutate(mini_htx, diff = speed - posted_speed) %>% 
-  filter(posted_speed >= 0) %>% group_by(subject_sex) %>%
-  summarise(total = n(),  
-            mean = mean(diff, na.rm = TRUE),
-            median = median(diff, na.rm = TRUE),
-            sd = sd(diff, na.rm = TRUE)) 
+query <- "
+SELECT subject_sex, COUNT(*) AS count, AVG(speed-posted_speed) AS avg_diff, STDEV(speed-posted_speed) as std_diff
+FROM mini_htx
+WHERE posted_speed >= 0 
+GROUP BY subject_sex
+ORDER BY avg_diff ASC"
+res <- dbSendQuery(con, query)
+df3 <- dbFetch(res)
+dbClearResult(res)
+knitr::kable(df3)
 ```
 
-Men and women are ticketed for roughly the same speeds, bit there are FAR more men ticketed than women in our dataset. This is not equal to the proportion of men and women in Houston, so this is either evidence that men speed more often than women, or that officers are more likely to give men citations and let women off with a warning, or that women are simply caught speeding less often, but speed just as frequently. 
+Men and women are ticketed for roughly the same speeds, bit there are FAR more men ticketed than women in our dataset. This is not equal to the proportion of men and women in Houston, so this is either evidence that men speed more often than women, or that officers are more likely to give men citations and let women off with a warning, or that women are simply caught speeding less often, but speed just as frequently.
 
 By Race AND Gender:
 ```{r, echo=FALSE}
 ## By Race AND Gender
-mutate(mini_htx, diff = speed - posted_speed) %>% 
-  filter(posted_speed >= 0) %>% group_by(raw_race, subject_sex) %>%
-  summarise(total = n(),
-            mean = mean(diff, na.rm = TRUE),
-            median = median(diff, na.rm = TRUE),
-            sd = sd(diff, na.rm = TRUE)) 
+query <- "
+SELECT subject_race, COUNT(*) AS n, AVG(speed-posted_speed) AS avg_diff, STDEV(speed-posted_speed) as std_diff
+FROM mini_htx
+WHERE posted_speed >= 0 
+GROUP BY subject_race, subject_sex
+ORDER BY avg_diff ASC"
+res <- dbSendQuery(con, query)
+df4 <- dbFetch(res)
+dbClearResult(res)
+knitr::kable(df4)
 ```
+
 Unknown race females have the lowest average amount speeding of 11.8mph and median of 10mph, the lowest of any group.     
 
-Since all of the race and sex data is reported by the officers, if there were bias, it could be easily hidden in the "unknowns" or "NAs" in the data. We are able to see that men get ticketed with a much greater frequency than women, but between race there are not many conclusions we can make. There is one exception, however. For most races it is true that men are ticketed two times as much as women of the same race, with the exception being Black people. Black women are ticketed almost as much as black men (24.4k and 29.9k, respectively). This could be evidence of bias against black women.     
+Since all of the race and sex data is reported by the officers, if there were bias, it could be easily hidden in the "unknowns" or "NAs" in the data. We are able to see that men get ticketed with a much greater frequency than women, but between race there are not many conclusions we can make. There is one exception, however. For most races it is true that men are ticketed two times as much as women of the same race, with the exception being Black people. Black women are ticketed almost as much as black men (24.4k and 29.9k, respectively). This could be evidence of bias against black women.   
 
 
 ### 5- What time of day do citation happen?
@@ -428,28 +449,9 @@ The rest of the times where the highest number of citations are given are in the
 
 The smallest number of citations occur around 4am. This may be due to a lack of people on the road, because it is very late at night/early in the morning.      
 
-### 6- What race is given the most citations for each district?
-
-Next, we were curious if certain districts ticketed certain races more often than others. We were mainly interested in if the race that was ticketed most was black or white, since the percentage of AAPI people is small compared to the percentage of white and black people. 
-
-```{r, echo=FALSE}
-# Question 5
-options(dplyr.summarise.inform = FALSE)
-test <- mini_htx %>% 
-  group_by(district, subject_race) %>% 
-  summarise(total = n()) %>% 
-  arrange(district, desc(total), by_group=TRUE)
-
-slice(test, seq(1,149,6)) %>% print(n = 1e3)
-
-#for each district, which race is cited the most 
-```
-
-In an ideal world, we would have data on the % of each race for each district, and we have been looking everywhere and we have not been able to find it yet. We submitted a Freedom of Information Act (FOIA) request for the data, and we are optimistic HPD will get back to us with this data in a reasonable amount of time. In the next iteration, we will hopefully have data about race/ethnicity break down by race to be able to investigate if the race that is cited the most frequently in each district is the race that is the most prevalent in that district. For now, this is just the simple breakdown of what race is cited the most for what district.      
 
 
-
-### 7- What is the number of citations per square mile for each beat?
+### 6- What is the number of citations per square mile for each beat?
 
 Next, our team aimed to understand the geographic distribution of citations by calculating the number of citations per square mile within each beat. To aid with our investigation, we found the median, standard deviation, and interquartile range of the number of citations per square mile. We also looked into the 5 beats with the greatest amount of citations per square mile and the 5 beats with the least amount of citations per square mile.   
 
@@ -468,6 +470,7 @@ cit_beat_area <- citations_in_beat %>%
 
 cit_beat_area$Citations_per_sqm <- cit_beat_area$n_individuals / cit_beat_area$Area_sq_mi
 csqm <- cit_beat_area[,c("Beats","Citations_per_sqm")]
+knitr::kable(csqm)
 ```
 Statistics on number of citations/square mile:
 ```{r, echo=FALSE}
@@ -477,7 +480,7 @@ cqm_summary[,1] <- csqm %>% summarise(median(Citations_per_sqm))
 cqm_summary[,2] <- csqm %>% summarise(sd(Citations_per_sqm))
 cqm_summary[,3] <- csqm %>% summarise(IQR(Citations_per_sqm))
 
-cqm_summary
+knitr::kable(cqm_summary)
 ```
 
 Top 5 Beats ranked by citations/square mile:
@@ -502,7 +505,8 @@ SELECT citations_in_beat.beats_c, CAST(citations_in_beat.count AS real)/beats_da
 FROM citations_in_beat JOIN beats_data ON citations_in_beat.beats_c=beats_data.Beats
 ORDER BY citations_per_sqm DESC LIMIT 5;"
 
-print(dbGetQuery(con, query3))
+out <- dbGetQuery(con, query3)
+knitr::kable(out)
 ```
 Upon comparison to a map of Houston's police beats, we saw that all five of these beats are adjacent, small, and located in the heart of Houston. Additionally, we noted that both beats 1A10 and 2A40 are very small in terms of square mileage, but contain two and one police stations, respectively; proximity to police stations could therefore explain the extremely high citations/square mile values for these beats.
 
@@ -515,7 +519,8 @@ SELECT citations_in_beat.beats_c, CAST(citations_in_beat.count AS real)/beats_da
 FROM citations_in_beat JOIN beats_data ON citations_in_beat.beats_c=beats_data.Beats
 ORDER BY citations_per_sqm ASC LIMIT 5;"
 
-print(dbGetQuery(con, query2))
+out <- dbGetQuery(con, query2)
+knitr::kable(out)
 ```
 Referencing a map of Houston's police beats, our team found that these five beats were located in Houston's suburbs and are all relatively large in terms of square mileage, which explains their low citations/square mile values.
 
